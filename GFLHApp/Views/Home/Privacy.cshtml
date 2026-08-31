@@ -1,0 +1,1110 @@
+@{
+    ViewData["Title"] = "Privacy & Terms";
+    ViewData["FullWidth"] = true;
+}
+
+<style>
+    /* ── Privacy Page — scoped styles using site tokens ── */
+
+    .prv-hero {
+        background: linear-gradient(135deg, var(--green-900) 0%, #166534 55%, #14532d 100%);
+        color: var(--white);
+        padding: 120px 0 80px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .prv-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 60% at 80% 30%, rgba(245,158,11,.18) 0%, transparent 60%),
+                    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(22,163,74,.25) 0%, transparent 55%);
+        pointer-events: none;
+    }
+
+    .prv-hero__float {
+        position: absolute;
+        opacity: .12;
+        animation: prv-drift 9s ease-in-out infinite;
+    }
+
+    .prv-hero__float--1 { top: 12%; left:  8%; font-size: 3.5rem; animation-delay: 0s; }
+    .prv-hero__float--2 { top: 20%; right: 10%; font-size: 2.5rem; animation-delay: 2s; }
+    .prv-hero__float--3 { bottom: 18%; left: 15%; font-size: 2rem; animation-delay: 4s; }
+    .prv-hero__float--4 { bottom: 25%; right: 18%; font-size: 3rem; animation-delay: 1.5s; }
+
+    @@keyframes prv-drift {
+        0%, 100% { transform: translateY(0) rotate(-4deg); }
+        50%       { transform: translateY(-18px) rotate(4deg); }
+    }
+
+    .prv-hero__inner {
+        position: relative;
+        z-index: 1;
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 0 32px;
+        text-align: center;
+    }
+
+    .prv-hero__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.2);
+        color: #bbf7d0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        padding: 6px 16px;
+        border-radius: var(--r-full);
+        margin-bottom: 24px;
+        backdrop-filter: blur(8px);
+    }
+
+    .prv-hero__title {
+        font-family: var(--font-display);
+        font-size: clamp(2.25rem, 5vw, 3.5rem);
+        font-weight: 700;
+        line-height: 1.1;
+        margin: 0 0 16px;
+        color: #ffffff;
+        text-shadow: 0 2px 24px rgba(0,0,0,.25);
+    }
+
+    .prv-hero__title em {
+        font-style: normal;
+        background: linear-gradient(90deg, #4ade80, #fcd34d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: brightness(1.15);
+    }
+
+    .prv-hero__sub {
+        font-size: 1.0625rem;
+        color: rgba(255,255,255,.72);
+        margin: 0 0 40px;
+        line-height: 1.7;
+    }
+
+    .prv-hero__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .prv-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,.1);
+        border: 1px solid rgba(255,255,255,.15);
+        color: rgba(255,255,255,.85);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: var(--r-full);
+        transition: background .15s;
+    }
+
+    .prv-chip:hover { background: rgba(255,255,255,.18); }
+
+    .prv-hero__wave {
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        line-height: 0;
+    }
+
+    /* ── TOC ── */
+    .prv-layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 48px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 72px 32px 96px;
+        align-items: start;
+    }
+
+    .prv-toc {
+        position: sticky;
+        top: 104px;
+    }
+
+    .prv-toc__label {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .prv-toc__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .prv-toc__link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        padding: 9px 14px;
+        border-radius: var(--r-md);
+        transition: background .15s, color .15s;
+        border-left: 3px solid transparent;
+    }
+
+    .prv-toc__link:hover,
+    .prv-toc__link.is-active {
+        background: var(--green-100);
+        color: var(--green-800);
+        border-left-color: var(--green);
+    }
+
+    .prv-toc__dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: .5;
+        flex-shrink: 0;
+    }
+
+    /* ── Content ── */
+    .prv-content {
+        min-width: 0;
+    }
+
+    .prv-section {
+        margin-bottom: 64px;
+        scroll-margin-top: 104px;
+    }
+
+    .prv-section__header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .prv-section__icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--r-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 4px;
+    }
+
+    .prv-section__icon-wrap--green   { background: var(--green-100);  color: var(--green); }
+    .prv-section__icon-wrap--yellow  { background: var(--yellow-100); color: var(--yellow); }
+    .prv-section__icon-wrap--orange  { background: var(--orange-100); color: var(--orange); }
+    .prv-section__icon-wrap--pink    { background: var(--pink-100);   color: var(--pink); }
+    .prv-section__icon-wrap--cream   { background: var(--cream-2);    color: var(--text-muted); }
+
+    .prv-section__heading {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: var(--text);
+        line-height: 1.2;
+    }
+
+    .prv-section__updated {
+        font-size: 0.8125rem;
+        color: var(--text-light);
+    }
+
+    .prv-prose {
+        font-size: 0.9375rem;
+        line-height: 1.75;
+        color: var(--text-muted);
+    }
+
+    .prv-prose p { margin: 0 0 16px; }
+    .prv-prose p:last-child { margin-bottom: 0; }
+
+    .prv-prose strong { color: var(--text); font-weight: 600; }
+
+    .prv-prose a {
+        color: var(--green);
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .prv-prose a:hover { color: var(--green-700); }
+
+    /* Info callout boxes */
+    .prv-callout {
+        display: flex;
+        gap: 14px;
+        padding: 18px 20px;
+        border-radius: var(--r-md);
+        margin: 20px 0;
+        border-left: 4px solid;
+    }
+
+    .prv-callout--green  { background: var(--green-100);  border-color: var(--green);  color: var(--green-800); }
+    .prv-callout--yellow { background: var(--yellow-100); border-color: var(--yellow); color: #92400E; }
+    .prv-callout--orange { background: var(--orange-100); border-color: var(--orange); color: #9A3412; }
+
+    body.dark-mode .prv-callout--green  { color: #86efac; }
+    body.dark-mode .prv-callout--yellow { color: #fde68a; }
+    body.dark-mode .prv-callout--orange { color: #fdba74; }
+
+    .prv-callout__icon { flex-shrink: 0; margin-top: 1px; }
+
+    .prv-callout__text {
+        font-size: 0.9rem;
+        line-height: 1.65;
+        font-weight: 500;
+    }
+
+    /* Rights grid */
+    .prv-rights {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .prv-right-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 18px 20px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow .15s, transform .15s;
+    }
+
+    .prv-right-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .prv-right-card__icon {
+        width: 36px; height: 36px;
+        border-radius: var(--r-sm);
+        background: var(--green-100);
+        color: var(--green);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .prv-right-card__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0 0 4px;
+    }
+
+    .prv-right-card__desc {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* Cookie table */
+    .prv-cookie-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin-top: 20px;
+        border-radius: var(--r-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .prv-cookie-table thead {
+        background: linear-gradient(135deg, var(--green-900), var(--green-700));
+        color: var(--white);
+    }
+
+    .prv-cookie-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        letter-spacing: .04em;
+    }
+
+    .prv-cookie-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background .1s;
+    }
+
+    .prv-cookie-table tbody tr:last-child { border-bottom: none; }
+
+    .prv-cookie-table tbody tr:hover { background: var(--green-100); }
+
+    .prv-cookie-table td {
+        padding: 12px 16px;
+        color: var(--text-muted);
+        vertical-align: top;
+    }
+
+    .prv-cookie-table td:first-child { color: var(--text); font-weight: 500; }
+
+    body.dark-mode .prv-cookie-table tbody tr:hover { background: rgba(22,163,74,.1); }
+
+    /* List styles */
+    .prv-list {
+        list-style: none;
+        margin: 16px 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .prv-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.9375rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    .prv-list__check {
+        width: 20px; height: 20px;
+        background: var(--green-100);
+        color: var(--green);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    /* Divider */
+    .prv-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        margin: 64px 0;
+    }
+
+    /* Updated-on banner */
+    .prv-updated-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--cream-2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 14px 20px;
+        margin-bottom: 48px;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .prv-updated-banner strong { color: var(--text); }
+
+    /* CTA strip */
+    .prv-cta-strip {
+        background: linear-gradient(135deg, var(--green-900) 0%, var(--green-700) 100%);
+        border-radius: var(--r-xl);
+        padding: 48px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-top: 48px;
+    }
+
+    .prv-cta-strip::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 60% at 80% 40%, rgba(245,158,11,.25) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+    .prv-cta-strip__title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--white);
+        margin: 0 0 10px;
+        position: relative;
+    }
+
+    .prv-cta-strip__sub {
+        font-size: 0.9375rem;
+        color: rgba(255,255,255,.7);
+        margin: 0 0 28px;
+        position: relative;
+    }
+
+    .prv-cta-strip__actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    /* Responsive */
+    @@media (max-width: 900px) {
+        .prv-layout {
+            grid-template-columns: 1fr;
+            padding: 48px 24px 72px;
+            gap: 32px;
+        }
+
+        .prv-toc {
+            position: static;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prv-toc__list {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .prv-rights {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .prv-hero { padding: 100px 0 64px; }
+        .prv-cta-strip { padding: 36px 24px; }
+        .prv-section__header { flex-direction: column; gap: 12px; }
+    }
+
+    /* dark-mode: hero wave path fill */
+    body.dark-mode .prv-hero {
+        background: linear-gradient(135deg, #071a0e 0%, #0d2a17 55%, #14532d 100%);
+    }
+
+    body.dark-mode .prv-right-card {
+        background: var(--white);
+        border-color: var(--border);
+    }
+
+    body.dark-mode .prv-updated-banner {
+        background: var(--cream-2);
+        border-color: var(--border);
+    }
+
+    body.dark-mode .prv-cookie-table thead {
+        background: linear-gradient(135deg, #14532d, #166534);
+    }
+
+    /* high-contrast additions */
+    body.high-contrast .prv-toc__link.is-active,
+    body.high-contrast .prv-toc__link:hover {
+        outline: 2px solid var(--green);
+    }
+
+    body.high-contrast .prv-right-card { outline: 1px solid var(--border); }
+</style>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="prv-hero" aria-label="Privacy &amp; Terms header">
+    <span class="prv-hero__float prv-hero__float--1" aria-hidden="true">🔒</span>
+    <span class="prv-hero__float prv-hero__float--2" aria-hidden="true">🌿</span>
+    <span class="prv-hero__float prv-hero__float--3" aria-hidden="true">📜</span>
+    <span class="prv-hero__float prv-hero__float--4" aria-hidden="true">🛡️</span>
+
+    <div class="prv-hero__inner">
+        <div class="prv-hero__badge">
+            <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
+            Your Privacy Matters
+        </div>
+        <h1 class="prv-hero__title">
+            Honest about <em>your data.</em><br>Simple as that.
+        </h1>
+        <p class="prv-hero__sub">
+            We only collect what we need, we never sell your data, and we give you full control.
+            Below is everything you need to know — written like a human, not a lawyer.
+        </p>
+        <div class="prv-hero__chips">
+            <span class="prv-chip"><i data-lucide="lock" style="width:13px;height:13px;"></i> GDPR Compliant</span>
+            <span class="prv-chip"><i data-lucide="ban" style="width:13px;height:13px;"></i> Never Sold</span>
+            <span class="prv-chip"><i data-lucide="shield" style="width:13px;height:13px;"></i> Encrypted</span>
+            <span class="prv-chip"><i data-lucide="eye-off" style="width:13px;height:13px;"></i> No Ad Tracking</span>
+        </div>
+    </div>
+
+    <div class="prv-hero__wave" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
+            <path d="M0,30 C360,60 720,0 1080,30 C1260,45 1380,20 1440,30 L1440,60 L0,60 Z" fill="var(--cream)" />
+        </svg>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════ LAYOUT ═══════════════════════ -->
+<div class="prv-layout" id="main-content">
+
+    <!-- ── TOC ── -->
+    <nav class="prv-toc" aria-label="Table of contents">
+        <p class="prv-toc__label">
+            <i data-lucide="list" style="width:12px;height:12px;"></i>
+            On this page
+        </p>
+        <ol class="prv-toc__list" id="prv-toc-list">
+            <li><a href="#our-promise"   class="prv-toc__link"><span class="prv-toc__dot"></span>Our Promise</a></li>
+            <li><a href="#data-collect"  class="prv-toc__link"><span class="prv-toc__dot"></span>Data We Collect</a></li>
+            <li><a href="#how-we-use"    class="prv-toc__link"><span class="prv-toc__dot"></span>How We Use It</a></li>
+            <li><a href="#cookies"       class="prv-toc__link"><span class="prv-toc__dot"></span>Cookies</a></li>
+            <li><a href="#your-rights"   class="prv-toc__link"><span class="prv-toc__dot"></span>Your Rights</a></li>
+            <li><a href="#third-parties" class="prv-toc__link"><span class="prv-toc__dot"></span>Third Parties</a></li>
+            <li><a href="#retention"     class="prv-toc__link"><span class="prv-toc__dot"></span>Data Retention</a></li>
+            <li><a href="#terms-of-use"  class="prv-toc__link"><span class="prv-toc__dot"></span>Terms of Use</a></li>
+            <li><a href="#returns"       class="prv-toc__link"><span class="prv-toc__dot"></span>Returns &amp; Refunds</a></li>
+            <li><a href="#contact"       class="prv-toc__link"><span class="prv-toc__dot"></span>Contact Us</a></li>
+        </ol>
+    </nav>
+
+    <!-- ── Main Content ── -->
+    <main class="prv-content">
+
+        <!-- Last updated -->
+        <div class="prv-updated-banner reveal">
+            <i data-lucide="calendar-check" style="width:18px;height:18px;color:var(--green);flex-shrink:0;"></i>
+            <span>Last updated: <strong>22 April 2026</strong> &nbsp;·&nbsp; Effective immediately &nbsp;·&nbsp; Version 3.1</span>
+        </div>
+
+
+        <!-- ── 1. Our Promise ── -->
+        <article class="prv-section reveal" id="our-promise">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--green">
+                    <i data-lucide="heart-handshake" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Our Promise to You</h2>
+                    <p class="prv-section__updated">The short version of everything below</p>
+                </div>
+            </div>
+
+            <div class="prv-callout prv-callout--green">
+                <i data-lucide="shield-check" class="prv-callout__icon" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <p class="prv-callout__text">
+                    We run Greenfield Local Hub — a farm-to-door marketplace built on trust. Your data is used
+                    only to deliver your produce and improve your experience. Full stop.
+                </p>
+            </div>
+
+            <div class="prv-prose">
+                <p>
+                    <strong>Greenfield Local Hub (GFLH)</strong> is committed to protecting your personal information and being
+                    transparent about what we collect and why. This Privacy Policy and our Terms of Use together govern your
+                    use of our website and services.
+                </p>
+                <p>
+                    We are the data controller for the personal information we hold about you. If you have any questions,
+                    our Data Protection contact can be reached at <a href="mailto:privacy@greenfieldlocalhub.co.uk">privacy@greenfieldlocalhub.co.uk</a>.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 2. Data We Collect ── -->
+        <article class="prv-section reveal" id="data-collect">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--yellow">
+                    <i data-lucide="database" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Data We Collect</h2>
+                    <p class="prv-section__updated">Only what we genuinely need</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>We collect information in three ways: directly from you, automatically when you use our site, and occasionally from trusted third parties.</p>
+            </div>
+
+            <ul class="prv-list">
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Account data</strong> — your name, email address, and encrypted password when you register.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Order data</strong> — your delivery address and order history, including the products you've ordered and their quantities.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Usage data</strong> — pages visited, time on site, and browser type, collected anonymously via our analytics tools.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Communications</strong> — any messages you send us via our contact form or email, to help us respond to you.</span>
+                </li>
+            </ul>
+
+            <div class="prv-callout prv-callout--yellow">
+                <i data-lucide="info" class="prv-callout__icon" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <p class="prv-callout__text">
+                    We never collect sensitive data such as ethnicity, health information, or financial details beyond what's needed to process a payment securely.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 3. How We Use It ── -->
+        <article class="prv-section reveal" id="how-we-use">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--orange">
+                    <i data-lucide="settings-2" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">How We Use Your Data</h2>
+                    <p class="prv-section__updated">Lawful basis for each purpose</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>Your data is only ever used for the following purposes, each backed by a legal basis under UK GDPR:</p>
+            </div>
+
+            <ul class="prv-list">
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Fulfil your orders</strong> — recording and managing the produce you've ordered through the platform. <em style="color:var(--text-light);font-size:0.85em;">(Contractual necessity)</em></span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Manage your account</strong> — keeping your profile, role, order history, and basket working correctly. <em style="color:var(--text-light);font-size:0.85em;">(Contractual necessity)</em></span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Google sign-in</strong> — if you choose to sign in with Google, we receive your name and email from Google to create or link your account. <em style="color:var(--text-light);font-size:0.85em;">(Consent)</em></span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Improve our platform</strong> — understanding how the site is used so we can improve it. <em style="color:var(--text-light);font-size:0.85em;">(Legitimate interest)</em></span>
+                </li>
+            </ul>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 4. Cookies ── -->
+        <article class="prv-section reveal" id="cookies">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--yellow">
+                    <i data-lucide="cookie" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Cookies</h2>
+                    <p class="prv-section__updated">Small files, big transparency</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>
+                    Cookies are tiny text files placed on your device. We use a minimal set — only what's needed to keep
+                    the site working and to understand how people use it.
+                </p>
+            </div>
+
+            <table class="prv-cookie-table" aria-label="Cookies used on this site">
+                <thead>
+                    <tr>
+                        <th scope="col">Cookie</th>
+                        <th scope="col">Purpose</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>.AspNetCore.Session</td>
+                        <td>Keeps your basket and login session active</td>
+                        <td>Essential</td>
+                        <td>Session</td>
+                    </tr>
+                    <tr>
+                        <td>.AspNetCore.Identity</td>
+                        <td>Authenticates your account across pages</td>
+                        <td>Essential</td>
+                        <td>14 days</td>
+                    </tr>
+                    <tr>
+                        <td>gflh-dark-mode</td>
+                        <td>Remembers your dark / light mode preference</td>
+                        <td>Functional</td>
+                        <td>1 year</td>
+                    </tr>
+                    <tr>
+                        <td>gflh-font-size</td>
+                        <td>Remembers your preferred text size</td>
+                        <td>Functional</td>
+                        <td>1 year</td>
+                    </tr>
+                    <tr>
+                        <td>gflh-high-contrast</td>
+                        <td>Remembers your high-contrast preference</td>
+                        <td>Functional</td>
+                        <td>1 year</td>
+                    </tr>
+                    <tr>
+                        <td>__Host-</td>
+                        <td>Anti-forgery token to protect forms from cross-site request forgery</td>
+                        <td>Essential</td>
+                        <td>Session</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="prv-callout prv-callout--orange" style="margin-top:20px;">
+                <i data-lucide="settings" class="prv-callout__icon" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <p class="prv-callout__text">
+                    You can disable non-essential cookies at any time through your browser settings. Removing essential cookies
+                    may affect your ability to shop and log in.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 5. Your Rights ── -->
+        <article class="prv-section reveal" id="your-rights">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--pink">
+                    <i data-lucide="user-check" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Your Rights (GDPR)</h2>
+                    <p class="prv-section__updated">You're in control — here's how</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>Under UK GDPR you have a set of powerful rights over your personal data. We take these seriously and aim to respond to all requests within <strong>30 days</strong>.</p>
+            </div>
+
+            <div class="prv-rights">
+                <div class="prv-right-card reveal reveal--pop" data-delay="0">
+                    <div class="prv-right-card__icon"><i data-lucide="eye" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Access</p>
+                        <p class="prv-right-card__desc">Request a copy of all personal data we hold about you, free of charge.</p>
+                    </div>
+                </div>
+                <div class="prv-right-card reveal reveal--pop" data-delay="60">
+                    <div class="prv-right-card__icon"><i data-lucide="pencil" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Rectification</p>
+                        <p class="prv-right-card__desc">Ask us to correct any inaccurate or incomplete information.</p>
+                    </div>
+                </div>
+                <div class="prv-right-card reveal reveal--pop" data-delay="120">
+                    <div class="prv-right-card__icon"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Erasure</p>
+                        <p class="prv-right-card__desc">Request deletion of your data where there is no overriding legal reason to keep it.</p>
+                    </div>
+                </div>
+                <div class="prv-right-card reveal reveal--pop" data-delay="180">
+                    <div class="prv-right-card__icon"><i data-lucide="pause-circle" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Restriction</p>
+                        <p class="prv-right-card__desc">Ask us to pause processing your data while a dispute is resolved.</p>
+                    </div>
+                </div>
+                <div class="prv-right-card reveal reveal--pop" data-delay="240">
+                    <div class="prv-right-card__icon"><i data-lucide="download" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Portability</p>
+                        <p class="prv-right-card__desc">Receive your data in a machine-readable format to move to another service.</p>
+                    </div>
+                </div>
+                <div class="prv-right-card reveal reveal--pop" data-delay="300">
+                    <div class="prv-right-card__icon"><i data-lucide="x-circle" style="width:16px;height:16px;"></i></div>
+                    <div>
+                        <p class="prv-right-card__title">Right to Object</p>
+                        <p class="prv-right-card__desc">Object to us processing your data for marketing or legitimate interest purposes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prv-prose" style="margin-top:24px;">
+                <p>To exercise any of these rights, email <a href="mailto:privacy@greenfieldlocalhub.co.uk">privacy@greenfieldlocalhub.co.uk</a>. You also have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong> at <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer">ico.org.uk</a>.</p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 6. Third Parties ── -->
+        <article class="prv-section reveal" id="third-parties">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--yellow">
+                    <i data-lucide="share-2" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Third Parties</h2>
+                    <p class="prv-section__updated">Who we share data with — and why</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>We never sell your data. We share it only with carefully chosen partners who help us run our service, each bound by strict data-processing agreements:</p>
+            </div>
+
+            <ul class="prv-list">
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Google (OAuth sign-in)</strong> — if you sign in with Google, your name and email address are shared with us by Google solely to create or authenticate your account. Google's own privacy policy governs how they handle your data on their side.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Our Producers</strong> — your name and the details of your order are visible to the producer fulfilling it, so they know what to pack. Nothing else is shared.</span>
+                </li>
+            </ul>
+
+            <div class="prv-callout prv-callout--green">
+                <i data-lucide="ban" class="prv-callout__icon" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <p class="prv-callout__text">
+                    We will never sell, rent, or trade your personal information to any third party for marketing purposes. Ever.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 7. Retention ── -->
+        <article class="prv-section reveal" id="retention">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--cream">
+                    <i data-lucide="clock" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Data Retention</h2>
+                    <p class="prv-section__updated">How long we keep things</p>
+                </div>
+            </div>
+
+            <ul class="prv-list">
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Account data</strong> — retained while your account is active, plus 2 years after closure to resolve any disputes.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Order &amp; financial records</strong> — 7 years, as required by UK tax law (HMRC).</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Marketing preferences</strong> — until you unsubscribe or withdraw consent.</span>
+                </li>
+                <li>
+                    <span class="prv-list__check" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;"></i></span>
+                    <span><strong>Anonymous analytics</strong> — aggregated data with no personal identifiers, retained indefinitely for trend analysis.</span>
+                </li>
+            </ul>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 8. Terms of Use ── -->
+        <article class="prv-section reveal" id="terms-of-use">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--green">
+                    <i data-lucide="file-text" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Terms of Use</h2>
+                    <p class="prv-section__updated">The rules of the road</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>
+                    By using the Greenfield platform, you agree to these terms. If you don't agree, please don't use the service.
+                    We've tried to write them plainly — if anything is unclear, just ask.
+                </p>
+
+                <p>
+                    <strong>Eligibility.</strong> You must be 18 or over to register for an account.
+                    By creating an account you confirm this.
+                </p>
+
+                <p>
+                    <strong>Account responsibility.</strong> You are responsible for keeping your login credentials secure.
+                    Don't share your password. If you sign in via Google, your Google account security is your responsibility.
+                    If you suspect unauthorised access, contact us immediately at
+                    <a href="mailto:support@growndifferent.co.uk">support@growndifferent.co.uk</a>.
+                </p>
+
+                <p>
+                    <strong>Product availability.</strong> All products are subject to seasonal availability. Stock levels shown
+                    on the platform reflect what our producers have listed and may change. We will always aim to keep listings
+                    accurate and up to date.
+                </p>
+
+                <p>
+                    <strong>Pricing.</strong> All prices are in Great British Pounds (£). We reserve the right to correct
+                    pricing errors — if a product is mispriced we will notify you before your order is confirmed.
+                </p>
+
+                <p>
+                    <strong>Acceptable use.</strong> You must not attempt to gain unauthorised access to our systems, scrape
+                    data, or engage in any activity that could harm other users or our producers.
+                    Violations may result in immediate account suspension.
+                </p>
+
+                <p>
+                    <strong>Intellectual property.</strong> All content on this site — including text, photography, and the
+                    Greenfield Local Hub brand — is protected by UK copyright law. You may not reproduce or distribute it without written permission.
+                </p>
+
+                <p>
+                    <strong>Limitation of liability.</strong> We are not liable for losses arising from events outside our reasonable
+                    control. Our liability is in any case limited to the value of the order in question.
+                </p>
+
+                <p>
+                    <strong>Governing law.</strong> These terms are governed by the laws of England and Wales. Any disputes will be
+                    subject to the exclusive jurisdiction of the courts of England and Wales.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 9. Returns & Refunds ── -->
+        <article class="prv-section reveal" id="returns">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--orange">
+                    <i data-lucide="rotate-ccw" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Returns &amp; Refunds</h2>
+                    <p class="prv-section__updated">Fresh produce, fair policy</p>
+                </div>
+            </div>
+
+            <div class="prv-callout prv-callout--green">
+                <i data-lucide="badge-check" class="prv-callout__icon" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <p class="prv-callout__text">
+                    If your produce arrives in poor condition — wilted, damaged, or not as described — we will always make it right.
+                    No argument. No hassle.
+                </p>
+            </div>
+
+            <div class="prv-prose">
+                <p>
+                    <strong>Reporting an issue.</strong> If there is a problem with your order — wrong items, missing products,
+                    or damaged produce — contact us at <a href="mailto:support@growndifferent.co.uk">support@growndifferent.co.uk</a>
+                    as soon as possible. We'll work with you and the producer to put it right.
+                </p>
+
+                <p>
+                    <strong>Cancellations.</strong> If you need to cancel an order, please contact us before it has been confirmed
+                    by the producer. Once a producer has accepted an order, cancellation may not be possible as fresh produce
+                    will already be set aside for your delivery.
+                </p>
+
+                <p>
+                    <strong>Fresh perishables.</strong> Because our products are fresh and perishable, we are unable to accept
+                    returns for change of mind under the Consumer Contracts Regulations 2013 exemption for perishable goods.
+                </p>
+            </div>
+        </article>
+
+        <div class="prv-divider" aria-hidden="true"></div>
+
+
+        <!-- ── 10. Contact ── -->
+        <article class="prv-section reveal" id="contact">
+            <div class="prv-section__header">
+                <div class="prv-section__icon-wrap prv-section__icon-wrap--pink">
+                    <i data-lucide="mail" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                    <h2 class="prv-section__heading">Contact Us</h2>
+                    <p class="prv-section__updated">We're real humans who actually reply</p>
+                </div>
+            </div>
+
+            <div class="prv-prose">
+                <p>Got a question about this policy, a data request, or just want to say hello? We're here.</p>
+                <p>
+                    <strong>Greenfield Local Hub</strong><br>
+                    <a href="mailto:privacy@greenfieldlocalhub.co.uk">privacy@greenfieldlocalhub.co.uk</a> — privacy &amp; data requests<br>
+                    <a href="mailto:support@growndifferent.co.uk">support@growndifferent.co.uk</a> — orders &amp; general help
+                </p>
+            </div>
+
+            <div class="prv-cta-strip reveal">
+                <h3 class="prv-cta-strip__title">Questions? We'd love to hear from you.</h3>
+                <p class="prv-cta-strip__sub">We aim to reply within one working day. Usually faster.</p>
+                <div class="prv-cta-strip__actions">
+                    <a href="mailto:support@growndifferent.co.uk" class="pw-btn pw-btn--ghost-dark pw-btn--lg">
+                        <i data-lucide="mail" style="width:16px;height:16px;"></i>
+                        Email Us
+                    </a>
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="pw-btn pw-btn--ghost-dark pw-btn--lg">
+                        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </article>
+
+    </main>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    /* ── Active TOC link on scroll ── */
+    var sections = document.querySelectorAll('.prv-section[id]');
+    var links    = document.querySelectorAll('#prv-toc-list .prv-toc__link');
+    if (!sections.length || !links.length) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var id = entry.target.id;
+            links.forEach(function (link) {
+                link.classList.toggle('is-active', link.getAttribute('href') === '#' + id);
+            });
+        });
+    }, { rootMargin: '-20% 0px -60% 0px' });
+
+    sections.forEach(function (s) { observer.observe(s); });
+}());
+</script>
+}

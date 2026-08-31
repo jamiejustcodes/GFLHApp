@@ -1,0 +1,261 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Overview";
+    ViewData["AdminSection"] = "overview";
+
+    var recentOrders    = (ViewBag.RecentOrders    as IEnumerable<GFLHApp.Models.Orders>) ?? Enumerable.Empty<GFLHApp.Models.Orders>();
+    var monthlyRevenue  = (ViewBag.MonthlyRevenue  as IEnumerable<dynamic>)               ?? Enumerable.Empty<dynamic>();
+    var topProducts     = (ViewBag.TopProducts     as IEnumerable<dynamic>)               ?? Enumerable.Empty<dynamic>();
+    var statusBreakdown = (ViewBag.StatusBreakdown as IEnumerable<dynamic>)               ?? Enumerable.Empty<dynamic>();
+
+    decimal totalRevenue = (decimal)(ViewBag.TotalRevenue ?? 0m);
+    decimal monthRevenue = (decimal)(ViewBag.MonthRevenue  ?? 0m);
+    decimal maxRev       = monthlyRevenue.Any() ? (decimal)monthlyRevenue.Max(m => (decimal)m.Revenue) : 1m;
+    if (maxRev == 0) maxRev = 1m;
+}
+
+<style>
+.adm-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+@@media (max-width: 1100px) { .adm-stats { grid-template-columns: repeat(2,1fr); } }
+@@media (max-width: 520px)  { .adm-stats { grid-template-columns: 1fr; } }
+
+.adm-stat {
+    background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-md);
+    padding: 16px 18px; display: flex; align-items: center; gap: 13px;
+    box-shadow: var(--shadow-sm); transition: box-shadow .15s, transform .15s;
+}
+.adm-stat:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.adm-stat--warn  { border-color: #fed7aa; background: #fff7ed; }
+.adm-stat--danger{ border-color: #fecaca; background: #fef2f2; }
+.adm-stat__icon  { width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.adm-stat__icon--green  { background: var(--green-100); color: var(--green); }
+.adm-stat__icon--orange { background: var(--orange-100); color: var(--orange); }
+.adm-stat__icon--purple { background: var(--purple-100); color: var(--purple); }
+.adm-stat__icon--blue   { background: #dbeafe; color: #2563eb; }
+.adm-stat__icon--red    { background: #fee2e2; color: #DC2626; }
+.adm-stat__val { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+.adm-stat__lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-top: 2px; }
+.adm-stat__sub { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+
+.adm-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.adm-card__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--cream); border-bottom: 1px solid var(--border); }
+.adm-card__title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 7px; margin: 0; }
+.adm-card__link { font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.adm-card__link:hover { color: var(--green-700); }
+
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border-bottom: 1.5px solid var(--border); background: var(--cream); }
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #fafaf9; }
+
+.adm-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: var(--r-full); font-size: 11px; font-weight: 700; }
+.adm-badge--pending   { background: var(--orange-100); color: var(--orange); }
+.adm-badge--accepted  { background: var(--green-100);  color: var(--green); }
+.adm-badge--cancelled { background: #f3f4f6; color: var(--text-muted); }
+.adm-badge--partial   { background: var(--yellow-100); color: #78350f; }
+
+.adm-bar-chart { padding: 14px 18px; display: flex; flex-direction: column; gap: 7px; }
+.adm-bar-row   { display: flex; align-items: center; gap: 8px; }
+.adm-bar-row__label { font-size: 11px; font-weight: 600; color: var(--text-muted); width: 48px; flex-shrink: 0; }
+.adm-bar-row__track { flex: 1; height: 16px; background: var(--cream); border-radius: 4px; overflow: hidden; }
+.adm-bar-row__fill  { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--green-700), var(--green)); }
+.adm-bar-row__val   { font-size: 11px; font-weight: 700; color: var(--text); width: 50px; text-align: right; flex-shrink: 0; }
+
+.adm-top-row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: var(--r-sm); transition: background .1s; }
+.adm-top-row:hover { background: var(--cream); }
+</style>
+
+<!-- Row 1 stats -->
+<div class="adm-stats">
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--blue"><i data-lucide="users" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">@ViewBag.TotalUsers</div><div class="adm-stat__lbl">Users</div></div>
+    </div>
+    <div class="adm-stat @(((int)(ViewBag.PendingOrders ?? 0)) > 0 ? "adm-stat--warn" : "")">
+        <div class="adm-stat__icon adm-stat__icon--orange"><i data-lucide="shopping-bag" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">@ViewBag.TotalOrders</div><div class="adm-stat__lbl">Orders</div><div class="adm-stat__sub">@ViewBag.PendingOrders pending</div></div>
+    </div>
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--purple"><i data-lucide="pound-sterling" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">£@totalRevenue.ToString("0.00")</div><div class="adm-stat__lbl">Revenue</div><div class="adm-stat__sub">£@monthRevenue.ToString("0.00") this month</div></div>
+    </div>
+    <div class="adm-stat @(((int)(ViewBag.LowStock ?? 0)) > 0 ? "adm-stat--danger" : "")">
+        <div class="adm-stat__icon @(((int)(ViewBag.LowStock ?? 0)) > 0 ? "adm-stat__icon--red" : "adm-stat__icon--green")">
+            <i data-lucide="@(((int)(ViewBag.LowStock ?? 0)) > 0 ? "alert-triangle" : "check-circle")" style="width:19px;height:19px;" aria-hidden="true"></i>
+        </div>
+        <div><div class="adm-stat__val">@ViewBag.LowStock</div><div class="adm-stat__lbl">Low stock</div><div class="adm-stat__sub">@ViewBag.TotalProducts products total</div></div>
+    </div>
+</div>
+
+<!-- Row 2 stats -->
+<div class="adm-stats">
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--green"><i data-lucide="sprout" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">@ViewBag.TotalProducers</div><div class="adm-stat__lbl">Producers</div></div>
+    </div>
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--orange"><i data-lucide="clock" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">@ViewBag.PendingOrders</div><div class="adm-stat__lbl">Pending</div></div>
+    </div>
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--blue"><i data-lucide="package" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">@ViewBag.TotalProducts</div><div class="adm-stat__lbl">Products</div></div>
+    </div>
+    <div class="adm-stat">
+        <div class="adm-stat__icon adm-stat__icon--purple"><i data-lucide="calendar" style="width:19px;height:19px;" aria-hidden="true"></i></div>
+        <div><div class="adm-stat__val">£@monthRevenue.ToString("0")</div><div class="adm-stat__lbl">This month</div></div>
+    </div>
+</div>
+
+<!-- Content grid -->
+<div style="display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;">
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- Recent orders -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="clock" style="width:15px;height:15px;" aria-hidden="true"></i>Recent orders</h2>
+                <a href="/AdminDashboard/Orders" class="adm-card__link">View all <i data-lucide="arrow-right" style="width:11px;height:11px;" aria-hidden="true"></i></a>
+            </div>
+            @if (recentOrders.Any())
+            {
+                <table class="adm-table">
+                    <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @foreach (var o in recentOrders)
+                    {
+                        string bm = (o.OrderStatus ?? "") switch {
+                            "Accepted"          => "adm-badge--accepted",
+                            "Cancelled"         => "adm-badge--cancelled",
+                            "Partially Complete"=> "adm-badge--partial",
+                            _                   => "adm-badge--pending"
+                        };
+                        <tr>
+                            <td><strong>#@o.OrdersId</strong></td>
+                            <td>@o.OrderDate.ToString("d MMM yy")</td>
+                            <td>@(o.OrderProducts?.Count ?? 0) item@(o.OrderProducts?.Count == 1 ? "" : "s")</td>
+                            <td>£@o.OrdersTotal.ToString("0.00")</td>
+                            <td><span class="adm-badge @bm">@o.OrderStatus</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="padding:28px;text-align:center;color:var(--text-muted);font-size:14px;">No orders yet.</div>
+            }
+        </div>
+
+        <!-- Revenue bar chart -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="bar-chart-2" style="width:15px;height:15px;" aria-hidden="true"></i>Revenue — last 6 months</h2>
+            </div>
+            @if (monthlyRevenue.Any())
+            {
+                <div class="adm-bar-chart">
+                    @foreach (var m in monthlyRevenue)
+                    {
+                        decimal rev = (decimal)m.Revenue;
+                        int pct = maxRev > 0 ? (int)Math.Round(rev / maxRev * 100) : 0;
+                        <div class="adm-bar-row">
+                            <span class="adm-bar-row__label">@m.Label</span>
+                            <div class="adm-bar-row__track"><div class="adm-bar-row__fill" style="width:@pct%"></div></div>
+                            <span class="adm-bar-row__val">£@rev.ToString("0")</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="padding:22px;text-align:center;color:var(--text-muted);font-size:13px;">No revenue data yet.</div>
+            }
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- Top products -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="trending-up" style="width:15px;height:15px;" aria-hidden="true"></i>Top products</h2>
+                <a href="/AdminDashboard/Products" class="adm-card__link">All</a>
+            </div>
+            @if (topProducts.Any())
+            {
+                <div style="padding:8px 10px;">
+                    @{ int rank = 0; }
+                    @foreach (var p in topProducts)
+                    {
+                        rank++;
+                        <div class="adm-top-row">
+                            <span style="font-size:12px;font-weight:800;color:var(--text-light);width:16px;">@rank</span>
+                            <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">@p.Name</span>
+                            <span style="font-size:12px;font-weight:700;color:var(--green);">×@p.TotalOrdered</span>
+                        </div>
+                    }
+                </div>
+            }
+            else { <div style="padding:18px;text-align:center;color:var(--text-muted);font-size:13px;">No order data yet.</div> }
+        </div>
+
+        <!-- Order status breakdown -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="pie-chart" style="width:15px;height:15px;" aria-hidden="true"></i>Status breakdown</h2>
+            </div>
+            @{
+                var dotMap = new Dictionary<string,string>{
+                    ["Pending"]="var(--orange)",["Accepted"]="var(--green)",
+                    ["Cancelled"]="var(--text-light)",["Partially Complete"]="var(--yellow)"
+                };
+            }
+            <div style="padding:12px 18px;display:flex;flex-direction:column;gap:7px;">
+                @foreach (var s in statusBreakdown)
+                {
+                    string statusKey = s.Status == null ? "" : (string)s.Status.ToString();
+                    string col = dotMap.ContainsKey(statusKey) ? dotMap[statusKey] : "var(--text-light)";
+                    <div style="display:flex;align-items:center;gap:9px;font-size:13px;">
+                        <span style="width:8px;height:8px;border-radius:50%;background:@col;flex-shrink:0;"></span>
+                        <span style="flex:1;color:var(--text-muted);font-weight:500;">@s.Status</span>
+                        <span style="font-weight:700;color:var(--text);">@s.Count</span>
+                    </div>
+                }
+                @if (!statusBreakdown.Any())
+                {
+                    <div style="text-align:center;color:var(--text-muted);font-size:13px;">No data.</div>   
+                }
+            </div>
+        </div>
+
+        <!-- Quick links -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="zap" style="width:15px;height:15px;" aria-hidden="true"></i>Quick actions</h2>
+            </div>
+            <div style="padding:10px;display:flex;flex-direction:column;gap:4px;">
+                @foreach (var item in new[]{
+                    ("/Products/Create",        "plus",        "Add new product"),
+                    ("/AdminDashboard/Orders",  "shopping-bag","All orders"),
+                    ("/AdminDashboard/Users",   "users",       "Manage users"),
+                    ("/AdminDashboard/Settings","settings",    "Settings & roles"),
+                    ("/Producers/Index",        "sprout",      "View producers"),
+                })
+                {
+                    <a href="@item.Item1" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;transition:background .12s,color .12s;"
+                       onmouseover="this.style.background='var(--cream)';this.style.color='var(--text)';"
+                       onmouseout="this.style.background='';this.style.color='var(--text-muted)';">
+                        <i data-lucide="@item.Item2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                        @item.Item3
+                    </a>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts { <script>if (window.lucide) lucide.createIcons();</script> }

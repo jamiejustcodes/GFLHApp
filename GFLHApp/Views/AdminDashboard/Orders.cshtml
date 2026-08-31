@@ -1,0 +1,191 @@
+@model IEnumerable<GFLHApp.Models.Orders>
+@using System.Linq
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Orders";
+    ViewData["AdminSection"] = "orders";
+    string search  = ViewBag.Search  ?? "";
+    string oStatus = ViewBag.OrderStatus   ?? "";
+    string tStatus = ViewBag.TrackingStatus ?? "";
+    string sort    = ViewBag.Sort    ?? "newest";
+}
+
+<style>
+.adm-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: flex-end; }
+.adm-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.adm-filter-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.adm-filter-input, .adm-filter-select {
+    height: 38px; padding: 0 12px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    color: var(--text); background: #fff;
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    outline: none; transition: border-color .15s;
+    appearance: none; -webkit-appearance: none;
+}
+.adm-filter-input:focus, .adm-filter-select:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.adm-filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+.adm-btn-filter {
+    height: 38px; padding: 0 16px;
+    background: var(--green); color: #fff; border: none; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .12s;
+}
+.adm-btn-filter:hover { background: var(--green-700); }
+.adm-btn-clear {
+    height: 38px; padding: 0 14px;
+    background: transparent; color: var(--text-muted);
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: border-color .12s, color .12s;
+}
+.adm-btn-clear:hover { border-color: var(--text-muted); color: var(--text); }
+
+.adm-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border-bottom: 1.5px solid var(--border); background: var(--cream); white-space: nowrap; }
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #fafaf9; }
+.adm-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: var(--r-full); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.adm-badge--pending   { background: var(--orange-100); color: var(--orange); }
+.adm-badge--accepted  { background: var(--green-100);  color: var(--green); }
+.adm-badge--cancelled { background: #f3f4f6; color: var(--text-muted); }
+.adm-badge--partial   { background: var(--yellow-100); color: #78350f; }
+.adm-badge--delivery  { background: var(--purple-100); color: var(--purple); }
+.adm-tbl-btn {
+    height: 28px; padding: 0 10px;
+    border-radius: var(--r-sm); font-size: 11px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid var(--border); background: transparent; color: var(--text-muted);
+    transition: all .1s; white-space: nowrap;
+}
+.adm-tbl-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-100); }
+.adm-results-info { font-size: 13px; color: var(--text-muted); padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--cream); }
+</style>
+
+<!-- Filters -->
+<form method="get" action="/AdminDashboard/Orders">
+    <div class="adm-filters">
+        <div class="adm-filter-group">
+            <label>Search</label>
+            <input name="search" class="adm-filter-input" value="@search" placeholder="Order # or user ID…" style="width:200px;" />
+        </div>
+        <div class="adm-filter-group">
+            <label>Order status</label>
+            <select name="orderStatus" class="adm-filter-select">
+                <option value="">All statuses</option>
+                @foreach (var s in new[]{"Pending","Accepted","Partially Complete","Cancelled"})
+                { <option value="@s" selected="@(oStatus == s)">@s</option> }
+            </select>
+        </div>
+        <div class="adm-filter-group">
+            <label>Tracking</label>
+            <select name="trackingStatus" class="adm-filter-select">
+                <option value="">All tracking</option>
+                @foreach (var s in new[]{"Preparing Delivery","Awaiting Confirmation","Delivered","Collecting","Cancelled"})
+                { <option value="@s" selected="@(tStatus == s)">@s</option> }
+            </select>
+        </div>
+        <div class="adm-filter-group">
+            <label>Sort</label>
+            <select name="sort" class="adm-filter-select">
+                <option value="newest"     selected="@(sort=="newest")">Newest first</option>
+                <option value="oldest"     selected="@(sort=="oldest")">Oldest first</option>
+                <option value="total_desc" selected="@(sort=="total_desc")">Highest total</option>
+                <option value="total_asc"  selected="@(sort=="total_asc")">Lowest total</option>
+            </select>
+        </div>
+        <button type="submit" class="adm-btn-filter">
+            <i data-lucide="search" style="width:13px;height:13px;" aria-hidden="true"></i>
+            Filter
+        </button>
+        @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(oStatus) || !string.IsNullOrEmpty(tStatus))
+        {
+            <a href="/AdminDashboard/Orders" class="adm-btn-clear">
+                <i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>
+                Clear
+            </a>
+        }
+    </div>
+</form>
+
+<div class="adm-card">
+    <div class="adm-results-info">@Model.Count() order@(Model.Count() == 1 ? "" : "s") found</div>
+
+    @if (Model.Any())
+    {
+        <div style="overflow-x:auto;">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Order status</th>
+                        <th>Tracking</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var o in Model)
+                {
+                    string obm = (o.OrderStatus ?? "") switch {
+                        "Accepted"          => "adm-badge--accepted",
+                        "Cancelled"         => "adm-badge--cancelled",
+                        "Partially Complete"=> "adm-badge--partial",
+                        _                   => "adm-badge--pending"
+                    };
+                    string tbm = (o.TrackingStatus ?? "") switch {
+                        var t when t.Contains("Delivered") => "adm-badge--accepted",
+                        var t when t.Contains("Awaiting")  => "adm-badge--delivery",
+                        var t when t.Contains("Preparing") => "adm-badge--pending",
+                        _                                   => "adm-badge--cancelled"
+                    };
+                    <tr>
+                        <td><strong>#@o.OrdersId</strong></td>
+                        <td style="white-space:nowrap;">@o.OrderDate.ToString("d MMM yyyy")</td>
+                        <td>
+                            @if (o.Delivery)   { <span class="adm-badge adm-badge--delivery">Delivery</span> }
+                            else if (o.Collection) { <span class="adm-badge adm-badge--pending">Collection</span> }
+                        </td>
+                        <td>@(o.OrderProducts?.Count ?? 0)</td>
+                        <td style="font-weight:700;">£@o.OrdersTotal.ToString("0.00")</td>
+                        <td><span class="adm-badge @obm">@o.OrderStatus</span></td>
+                        <td><span class="adm-badge @tbm" style="font-size:10px;">@o.TrackingStatus</span></td>
+                        <td>
+                            <div style="display:flex;gap:5px;">
+                                <a href="/Orders/Details/@o.OrdersId" class="adm-tbl-btn">View</a>
+                                <form asp-action="UpdateTrackingStatus" method="post" style="display:inline;" id="ts-@o.OrdersId">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@o.OrdersId" />
+                                    <select name="status" class="adm-filter-select" style="height:28px;font-size:11px;padding:0 24px 0 6px;" onchange="document.getElementById('ts-@o.OrdersId').submit()">
+                                        @foreach (var ts in new[]{"Preparing Delivery","Awaiting Confirmation","Delivered","Collecting","Cancelled"})
+                                        {
+                                            <option value="@ts" selected="@(o.TrackingStatus == ts)">@ts</option>
+                                        }
+                                    </select>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div style="padding:48px;text-align:center;color:var(--text-muted);">
+            <i data-lucide="inbox" style="width:40px;height:40px;display:block;margin:0 auto 10px;opacity:.3;" aria-hidden="true"></i>
+            <p style="font-size:14px;margin:0;">No orders match your filters.</p>
+        </div>
+    }
+</div>
+
+@section Scripts { <script>if (window.lucide) lucide.createIcons();</script> }

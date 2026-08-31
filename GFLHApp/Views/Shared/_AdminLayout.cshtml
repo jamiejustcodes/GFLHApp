@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Greenfield Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+    /* ══════════════════════════════════════════════════
+       Greenfield Admin Shell
+       Sidebar + topbar layout, separate from public site
+    ══════════════════════════════════════════════════ */
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        margin: 0; padding: 0;
+        font-family: var(--font-body);
+        background: var(--cream);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Shell ──────────────────────────────────────── */
+    .adm-shell {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* ── Sidebar ────────────────────────────────────── */
+    .adm-sidebar {
+        width: 240px;
+        min-height: 100vh;
+        background: #172c1f;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        z-index: 200;
+        transition: transform .25s cubic-bezier(.4,0,.2,1);
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+    .adm-sidebar::-webkit-scrollbar { display: none; }
+
+    .adm-sidebar__brand {
+        display: flex; align-items: center; gap: 10px;
+        padding: 22px 20px 18px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .adm-sidebar__brand-icon {
+        width: 36px; height: 36px;
+        background: var(--green);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; flex-shrink: 0;
+    }
+    .adm-sidebar__brand-text {
+        font-family: var(--font-display);
+        font-size: 15px; font-weight: 700; color: #fff;
+        line-height: 1.1;
+    }
+    .adm-sidebar__brand-sub {
+        font-size: 10px; font-weight: 600;
+        color: rgba(255,255,255,.4);
+        text-transform: uppercase; letter-spacing: .08em;
+    }
+
+    .adm-sidebar__nav {
+        flex: 1;
+        padding: 12px 10px;
+        display: flex; flex-direction: column; gap: 2px;
+    }
+
+    .adm-sidebar__section {
+        font-size: 10px; font-weight: 700; letter-spacing: .1em;
+        text-transform: uppercase; color: rgba(255,255,255,.3);
+        padding: 14px 12px 4px; margin-top: 4px;
+    }
+
+    .adm-nav-link {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 13.5px; font-weight: 600;
+        color: rgba(255,255,255,.6);
+        text-decoration: none;
+        transition: background .12s, color .12s;
+        position: relative;
+    }
+    .adm-nav-link:hover {
+        background: rgba(255,255,255,.07);
+        color: rgba(255,255,255,.9);
+    }
+    .adm-nav-link.is-active {
+        background: rgba(255,255,255,.12);
+        color: #fff;
+    }
+    .adm-nav-link.is-active::before {
+        content: '';
+        position: absolute; left: 0; top: 6px; bottom: 6px;
+        width: 3px; border-radius: 0 2px 2px 0;
+        background: var(--green);
+    }
+    .adm-nav-link__icon { width: 17px; height: 17px; flex-shrink: 0; opacity: .75; }
+    .adm-nav-link.is-active .adm-nav-link__icon { opacity: 1; }
+
+    .adm-nav-badge {
+        margin-left: auto;
+        background: var(--orange);
+        color: #fff;
+        font-size: 10px; font-weight: 800;
+        padding: 1px 6px; border-radius: 999px;
+        min-width: 18px; text-align: center;
+    }
+
+    .adm-sidebar__footer {
+        padding: 14px 16px;
+        border-top: 1px solid rgba(255,255,255,.08);
+        flex-shrink: 0;
+    }
+    .adm-sidebar__footer a {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 12px; font-weight: 600; color: rgba(255,255,255,.45);
+        text-decoration: none;
+        transition: color .12s;
+    }
+    .adm-sidebar__footer a:hover { color: rgba(255,255,255,.7); }
+
+    /* ── Main area ──────────────────────────────────── */
+    .adm-main {
+        margin-left: 240px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* ── Topbar ─────────────────────────────────────── */
+    .adm-topbar {
+        height: 58px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center;
+        padding: 0 28px;
+        gap: 16px;
+        position: sticky; top: 0; z-index: 100;
+    }
+    .adm-topbar__title {
+        font-family: var(--font-display);
+        font-size: 16px; font-weight: 700; color: var(--text);
+        flex: 1;
+    }
+    .adm-topbar__user {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: var(--text-muted);
+    }
+    .adm-topbar__avatar {
+        width: 30px; height: 30px; border-radius: 50%;
+        background: var(--green-100);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--green); font-size: 12px; font-weight: 800;
+    }
+    .adm-topbar__back {
+        font-size: 12px; font-weight: 600; color: var(--text-muted);
+        text-decoration: none; padding: 6px 12px;
+        border: 1.5px solid var(--border); border-radius: var(--r-sm);
+        display: flex; align-items: center; gap: 5px;
+        transition: color .12s, border-color .12s;
+    }
+    .adm-topbar__back:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* ── Content ────────────────────────────────────── */
+    .adm-content {
+        padding: 28px;
+        flex: 1;
+    }
+
+    /* ── Toast / success banner ─────────────────────── */
+    .adm-toast {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; margin-bottom: 20px;
+        background: var(--green-100);
+        border: 1.5px solid var(--green-200);
+        border-radius: var(--r-sm);
+        font-size: 13px; font-weight: 600; color: var(--green-800);
+    }
+
+    /* ── Mobile hamburger ───────────────────────────── */
+    .adm-hamburger {
+        display: none;
+        background: none; border: none; cursor: pointer;
+        padding: 4px; color: var(--text);
+    }
+    .adm-overlay {
+        display: none;
+        position: fixed; inset: 0; background: rgba(0,0,0,.4);
+        z-index: 199;
+    }
+
+    @@media (max-width: 860px) {
+        .adm-sidebar { transform: translateX(-100%); }
+        .adm-sidebar.is-open { transform: translateX(0); }
+        .adm-main { margin-left: 0; }
+        .adm-hamburger { display: flex; }
+        .adm-overlay.is-open { display: block; }
+        .adm-content { padding: 18px; }
+    }
+    </style>
+</head>
+<body>
+
+<div class="adm-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────── -->
+    <aside class="adm-sidebar" id="adminSidebar" aria-label="Admin navigation">
+        <a href="/" class="adm-sidebar__brand">
+            <div class="adm-sidebar__brand-icon" aria-hidden="true">
+                <i data-lucide="sprout" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+                <div class="adm-sidebar__brand-text">Greenfield</div>
+                <div class="adm-sidebar__brand-sub">Admin Panel</div>
+            </div>
+        </a>
+
+        <nav class="adm-sidebar__nav" aria-label="Admin sections">
+            <a href="/AdminDashboard"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "overview" ? "is-active" : "")">
+                <i data-lucide="layout-dashboard" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Overview
+            </a>
+
+            <div class="adm-sidebar__section">Manage</div>
+
+            <a href="/AdminDashboard/Orders"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "orders" ? "is-active" : "")">
+                <i data-lucide="shopping-bag" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Orders
+                @if (ViewBag.PendingOrdersBadge is int pb && pb > 0)
+                {
+                    <span class="adm-nav-badge">@pb</span>
+                }
+            </a>
+
+            <a href="/AdminDashboard/Products"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "products" ? "is-active" : "")">
+                <i data-lucide="package" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Products
+            </a>
+
+            <a href="/AdminDashboard/Producers"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "producers" ? "is-active" : "")">
+                <i data-lucide="sprout" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Producers
+            </a>
+
+            <a href="/AdminDashboard/Users"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "users" ? "is-active" : "")">
+                <i data-lucide="users" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Users
+            </a>
+
+            <div class="adm-sidebar__section">System</div>
+
+            <a href="/AdminDashboard/Settings"
+               class="adm-nav-link @(ViewData["AdminSection"]?.ToString() == "settings" ? "is-active" : "")">
+                <i data-lucide="settings" class="adm-nav-link__icon" aria-hidden="true"></i>
+                Settings
+            </a>
+        </nav>
+
+        <div class="adm-sidebar__footer">
+            <a href="/">
+                <i data-lucide="arrow-left" style="width:14px;height:14px;" aria-hidden="true"></i>
+                Back to site
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main ─────────────────────────────────────── -->
+    <div class="adm-main" id="adminMain">
+        <header class="adm-topbar">
+            <button class="adm-hamburger" id="adminHamburger" aria-label="Open menu" aria-expanded="false">
+                <i data-lucide="menu" style="width:20px;height:20px;" aria-hidden="true"></i>
+            </button>
+            <div class="adm-topbar__title">@(ViewData["Title"] ?? "Admin")</div>
+            <a href="/" class="adm-topbar__back">
+                <i data-lucide="external-link" style="width:13px;height:13px;" aria-hidden="true"></i>
+                View site
+            </a>
+            <div class="adm-topbar__user">
+                <div class="adm-topbar__avatar" aria-hidden="true">
+                    @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
+                </div>
+                <span>@User.Identity?.Name</span>
+            </div>
+        </header>
+
+        <div class="adm-content">
+            @if (TempData["AdminSuccess"] is string msg)
+            {
+                <div class="adm-toast" role="status">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;flex-shrink:0;" aria-hidden="true"></i>
+                    @msg
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </div>
+
+    <div class="adm-overlay" id="adminOverlay" aria-hidden="true"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    (function () {
+        var sidebar   = document.getElementById('adminSidebar');
+        var overlay   = document.getElementById('adminOverlay');
+        var hamburger = document.getElementById('adminHamburger');
+
+        function open()  { sidebar.classList.add('is-open'); overlay.classList.add('is-open'); hamburger.setAttribute('aria-expanded','true'); }
+        function close() { sidebar.classList.remove('is-open'); overlay.classList.remove('is-open'); hamburger.setAttribute('aria-expanded','false'); }
+
+        if (hamburger) hamburger.addEventListener('click', function () {
+            sidebar.classList.contains('is-open') ? close() : open();
+        });
+        if (overlay) overlay.addEventListener('click', close);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    }());
+</script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

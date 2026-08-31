@@ -1,0 +1,194 @@
+@using System.Linq
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Settings";
+    ViewData["AdminSection"] = "settings";
+    var allRoles = (ViewBag.AllRoles as IEnumerable<string>) ?? Enumerable.Empty<string>();
+}
+
+<style>
+.adm-settings-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+@@media (max-width: 900px) { .adm-settings-grid { grid-template-columns: 1fr; } }
+
+.adm-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 18px; }
+.adm-card__head { display: flex; align-items: center; gap: 9px; padding: 14px 20px; background: var(--cream); border-bottom: 1px solid var(--border); }
+.adm-card__title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text); margin: 0; display: flex; align-items: center; gap: 8px; }
+.adm-card__body { padding: 18px 20px; }
+
+.adm-stat-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.adm-stat-row:last-child { border-bottom: none; }
+.adm-stat-row__label { color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 7px; }
+.adm-stat-row__val   { font-weight: 700; color: var(--text); }
+
+.adm-role-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: var(--r-full); font-size: 12px; font-weight: 700; margin: 3px; }
+.adm-role-chip--admin    { background: var(--purple-100); color: var(--purple); }
+.adm-role-chip--producer { background: var(--green-100); color: var(--green); }
+.adm-role-chip--default  { background: var(--cream-2); color: var(--text-muted); }
+
+.adm-create-role-form { display: flex; gap: 8px; margin-top: 14px; }
+.adm-role-input {
+    flex: 1; height: 38px; padding: 0 12px;
+    font-family: var(--font-body); font-size: 13px; color: var(--text);
+    background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    outline: none; transition: border-color .15s;
+}
+.adm-role-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.adm-btn-create { height: 38px; padding: 0 16px; background: var(--green); color: #fff; border: none; border-radius: var(--r-sm); font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.adm-btn-create:hover { background: var(--green-700); }
+
+.adm-link-row { display: flex; align-items: center; gap: 9px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.adm-link-row:last-child { border-bottom: none; }
+.adm-link-row a { color: var(--green); font-weight: 600; text-decoration: none; margin-left: auto; font-size: 12px; }
+.adm-link-row a:hover { color: var(--green-700); text-decoration: underline; }
+
+.adm-info-box {
+    background: var(--green-100); border: 1.5px solid var(--green-200);
+    border-radius: var(--r-sm); padding: 14px 16px;
+    font-size: 13px; color: var(--green-800); line-height: 1.6;
+    margin-bottom: 18px;
+    display: flex; gap: 10px;
+}
+</style>
+
+<!-- Setup notice if no roles -->
+@if (!allRoles.Any())
+{
+    <div class="adm-info-box">
+        <i data-lucide="info" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;" aria-hidden="true"></i>
+        <div>
+            <strong>First-time setup:</strong> No roles exist yet. Create the <strong>Admin</strong> and <strong>Producer</strong> roles below, then assign them to users in the Users tab.
+        </div>
+    </div>
+}
+
+<div class="adm-settings-grid">
+
+    <div>
+        <!-- Site stats -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="bar-chart-2" style="width:16px;height:16px;" aria-hidden="true"></i>System statistics</h2>
+            </div>
+            <div class="adm-card__body">
+                @foreach (var (icon, label, val) in new[]{
+                    ("users",         "Registered users",    ViewBag.UserCount?.ToString()    ?? "0"),
+                    ("shopping-bag",  "Total orders",        ViewBag.OrderCount?.ToString()   ?? "0"),
+                    ("package",       "Total products",      ViewBag.ProductCount?.ToString() ?? "0"),
+                    ("sprout",        "Producers",           ViewBag.ProducerCount?.ToString()?? "0"),
+                    ("pound-sterling","Total revenue",       "£" + ((decimal)(ViewBag.TotalRevenue ?? 0m)).ToString("0.00")),
+                    ("shopping-cart", "Active baskets",      ViewBag.ActiveBaskets?.ToString() ?? "0"),
+                })
+                {
+                    <div class="adm-stat-row">
+                        <span class="adm-stat-row__label">
+                            <i data-lucide="@icon" style="width:14px;height:14px;color:var(--green);" aria-hidden="true"></i>
+                            @label
+                        </span>
+                        <span class="adm-stat-row__val">@val</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick navigation -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="link" style="width:16px;height:16px;" aria-hidden="true"></i>Admin shortcuts</h2>
+            </div>
+            <div class="adm-card__body">
+                @foreach (var (icon, label, href) in new[]{
+                    ("layout-dashboard","Overview",                "/AdminDashboard"),
+                    ("shopping-bag",    "Manage orders",           "/AdminDashboard/Orders"),
+                    ("package",         "Manage products",         "/AdminDashboard/Products"),
+                    ("sprout",          "Manage producers",        "/AdminDashboard/Producers"),
+                    ("users",           "Manage users",            "/AdminDashboard/Users"),
+                    ("plus",            "Add new product",         "/Products/Create"),
+                    ("store",           "View public shop",        "/Products"),
+                    ("user",            "Identity account pages",  "/Identity/Account/Manage"),
+                })
+                {
+                    <div class="adm-link-row">
+                        <i data-lucide="@icon" style="width:14px;height:14px;color:var(--text-muted);" aria-hidden="true"></i>
+                        <span style="color:var(--text);font-weight:500;">@label</span>
+                        <a href="@href">Open →</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <!-- Role management -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="shield" style="width:16px;height:16px;" aria-hidden="true"></i>Roles</h2>
+            </div>
+            <div class="adm-card__body">
+                <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px;line-height:1.6;">
+                    Roles control access. <strong>Admin</strong> grants full dashboard access. <strong>Producer</strong> grants the producer hub. Assign roles to users in the Users tab.
+                </p>
+
+                @if (allRoles.Any())
+                {
+                    <div style="margin-bottom:12px;">
+                        @foreach (var r in allRoles)
+                        {
+                            string cm = r == "Admin" ? "adm-role-chip--admin"
+                                      : r == "Producer" ? "adm-role-chip--producer"
+                                      : "adm-role-chip--default";
+                            <span class="adm-role-chip @cm">
+                                <i data-lucide="shield-check" style="width:11px;height:11px;" aria-hidden="true"></i>
+                                @r
+                            </span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p style="font-size:13px;color:var(--text-light);margin:0 0 12px;">No roles created yet.</p>
+                }
+
+                <form asp-action="CreateRole" method="post">
+                    @Html.AntiForgeryToken()
+                    <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:6px;">Create new role</label>
+                    <div class="adm-create-role-form">
+                        <input name="roleName" class="adm-role-input" placeholder="e.g. Admin, Producer…" required />
+                        <button type="submit" class="adm-btn-create">
+                            <i data-lucide="plus" style="width:13px;height:13px;" aria-hidden="true"></i>
+                            Create
+                        </button>
+                    </div>
+                </form>
+
+                <div style="margin-top:16px;padding:12px;background:var(--cream);border-radius:var(--r-sm);font-size:12px;color:var(--text-muted);line-height:1.6;">
+                    <strong>Tip:</strong> Create <code>Admin</code> first, then assign it to yourself via the Users tab. Once you're Admin, access is locked to other admins.
+                </div>
+            </div>
+        </div>
+
+        <!-- App info -->
+        <div class="adm-card">
+            <div class="adm-card__head">
+                <h2 class="adm-card__title"><i data-lucide="info" style="width:16px;height:16px;" aria-hidden="true"></i>App info</h2>
+            </div>
+            <div class="adm-card__body">
+                @foreach (var (label, val) in new[]{
+                    ("App name",    "Greenfield"),
+                    ("Framework",   "ASP.NET Core MVC"),
+                    ("Auth",        "ASP.NET Core Identity"),
+                    ("ORM",         "Entity Framework Core"),
+                    ("Server time", DateTime.UtcNow.ToString("d MMM yyyy HH:mm") + " UTC"),
+                })
+                {
+                    <div class="adm-stat-row">
+                        <span class="adm-stat-row__label">@label</span>
+                        <span class="adm-stat-row__val" style="font-family:monospace;font-size:12px;">@val</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts { <script>if (window.lucide) lucide.createIcons();</script> }

@@ -1,0 +1,96 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Create account";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+    <div class="pw-auth-blob pw-auth-blob--3"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Join the farm</h1>
+            <p class="pw-auth-card__subtitle">Fresh produce, direct from local growers</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="pw-auth-form">
+                <div asp-validation-summary="ModelOnly" class="pw-auth-errors" role="alert"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="you@example.com" />
+                    <label asp-for="Input.Email">Email address</label>
+                    <span asp-validation-for="Input.Email" class="pw-auth-field-error"></span>
+                </div>
+
+                <div class="form-floating mb-3 pw-auth-input-wrap">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Password" id="regPassword" style="padding-right:48px" />
+                    <label asp-for="Input.Password">Password</label>
+                    <button type="button" class="pw-auth-eye" aria-label="Toggle password visibility" onclick="togglePw('regPassword',this)">
+                        <i data-lucide="eye" style="width:17px;height:17px;stroke-width:2"></i>
+                    </button>
+                    <span asp-validation-for="Input.Password" class="pw-auth-field-error"></span>
+                </div>
+
+                <div class="form-floating mb-4 pw-auth-input-wrap">
+                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm password" id="regPasswordConfirm" style="padding-right:48px" />
+                    <label asp-for="Input.ConfirmPassword">Confirm password</label>
+                    <button type="button" class="pw-auth-eye" aria-label="Toggle password visibility" onclick="togglePw('regPasswordConfirm',this)">
+                        <i data-lucide="eye" style="width:17px;height:17px;stroke-width:2"></i>
+                    </button>
+                    <span asp-validation-for="Input.ConfirmPassword" class="pw-auth-field-error"></span>
+                </div>
+
+                <button id="registerSubmit" type="submit" class="pw-btn pw-btn--primary pw-btn--lg pw-auth-submit">
+                    <i data-lucide="user-plus" style="width:17px;height:17px;stroke-width:2.5"></i>
+                    Create account
+                </button>
+            </form>
+
+            @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+            {
+                <div class="pw-auth-divider">or sign up with</div>
+                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        @foreach (var provider in Model.ExternalLogins!)
+                        {
+                            <button type="submit" class="pw-btn pw-btn--ghost pw-btn--md" name="provider" value="@provider.Name"
+                                    title="Register with @provider.DisplayName" style="flex:1;min-width:120px;">
+                                @provider.DisplayName
+                            </button>
+                        }
+                    </div>
+                </form>
+            }
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <span>Already have an account?</span>
+                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Sign in</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePw(id, btn) {
+            const input = document.getElementById(id);
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            btn.innerHTML = isText
+                ? '<i data-lucide="eye" style="width:17px;height:17px;stroke-width:2"></i>'
+                : '<i data-lucide="eye-off" style="width:17px;height:17px;stroke-width:2"></i>';
+            lucide.createIcons();
+        }
+    </script>
+}

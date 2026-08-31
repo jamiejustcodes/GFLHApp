@@ -1,0 +1,52 @@
+@page
+@model ResendEmailConfirmationModel
+@{
+    ViewData["Title"] = "Resend confirmation";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Resend confirmation</h1>
+            <p class="pw-auth-card__subtitle">Get a fresh confirmation link in your inbox</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <form method="post" class="pw-auth-form">
+                <div asp-validation-summary="All" class="pw-auth-errors" role="alert"></div>
+
+                <div class="form-floating mb-4">
+                    <input asp-for="Input.Email" class="form-control" aria-required="true" placeholder="you@example.com" />
+                    <label asp-for="Input.Email">Email address</label>
+                    <span asp-validation-for="Input.Email" class="pw-auth-field-error"></span>
+                </div>
+
+                <button type="submit" class="pw-btn pw-btn--primary pw-btn--lg pw-auth-submit">
+                    <i data-lucide="send" style="width:17px;height:17px;stroke-width:2.5"></i>
+                    Resend email
+                </button>
+            </form>
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <a asp-page="./Login">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;stroke-width:2.5;vertical-align:middle;margin-right:4px"></i>
+                    Back to sign in
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

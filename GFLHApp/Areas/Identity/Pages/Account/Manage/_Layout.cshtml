@@ -1,0 +1,33 @@
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-manage-header">
+    <div class="pw-manage-header__blob pw-manage-header__blob--1"></div>
+    <div class="pw-manage-header__blob pw-manage-header__blob--2"></div>
+    <div class="pw-manage-header__inner">
+        <div class="pw-manage-header__avatar" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <div class="pw-manage-header__text">
+            <span class="pw-manage-header__eyebrow">Greenfield Account</span>
+            <h1 class="pw-manage-header__title">Account Settings</h1>
+            <p class="pw-manage-header__sub">Manage your profile, security and preferences</p>
+        </div>
+    </div>
+</div>
+
+<div class="pw-manage-body">
+    <aside class="pw-manage-sidebar" aria-label="Account settings navigation">
+        <span class="pw-manage-sidebar__label">Settings</span>
+        <partial name="_ManageNav" />
+    </aside>
+    <div class="pw-manage-content">
+        @RenderBody()
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

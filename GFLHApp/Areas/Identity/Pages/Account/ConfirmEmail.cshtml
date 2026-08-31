@@ -1,0 +1,50 @@
+@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "Email confirmed";
+    ViewData["FullWidth"] = true;
+    var isError = Model.StatusMessage?.StartsWith("Error") == true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">@(isError ? "Something went wrong" : "Email confirmed")</h1>
+            <p class="pw-auth-card__subtitle">@(isError ? "We couldn't verify your email" : "Your account is ready to use")</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            @if (!string.IsNullOrEmpty(Model.StatusMessage))
+            {
+                <div class="pw-auth-status">
+                    <div class="pw-auth-status__icon @(isError ? "pw-auth-status__icon--danger" : "pw-auth-status__icon--success")">
+                        <i data-lucide="@(isError ? "x-circle" : "check-circle-2")" style="width:34px;height:34px;stroke-width:1.75"></i>
+                    </div>
+                    <p class="pw-auth-status__title">@(isError ? "Confirmation failed" : "You're all set!")</p>
+                    <p class="pw-auth-status__body">@Model.StatusMessage</p>
+                    @if (!isError)
+                    {
+                        <a asp-page="./Login" class="pw-btn pw-btn--primary pw-btn--md" style="width:100%;justify-content:center;">
+                            <i data-lucide="log-in" style="width:16px;height:16px;stroke-width:2.5"></i>
+                            Sign in to Greenfield
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-page="./ResendEmailConfirmation" class="pw-btn pw-btn--outline pw-btn--md" style="width:100%;justify-content:center;">
+                            <i data-lucide="refresh-cw" style="width:16px;height:16px;stroke-width:2.5"></i>
+                            Resend confirmation
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+@inject SignInManager<IdentityUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+<ul class="pw-manage-nav" role="list">
+    <li class="pw-manage-nav__item">
+        <a class="@ManageNavPages.IndexNavClass(ViewContext)" asp-page="./Index" id="profile-nav">
+            <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            Profile
+        </a>
+    </li>
+    <li class="pw-manage-nav__item">
+        <a class="@ManageNavPages.EmailNavClass(ViewContext)" asp-page="./Email" id="email-nav">
+            <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Email
+        </a>
+    </li>
+    <li class="pw-manage-nav__item">
+        <a class="@ManageNavPages.ChangePasswordNavClass(ViewContext)" asp-page="./ChangePassword" id="change-password-nav">
+            <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Password
+        </a>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li class="pw-manage-nav__item">
+            <a class="@ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins" id="external-login-nav">
+                <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                External Logins
+            </a>
+        </li>
+    }
+    <li class="pw-manage-nav__item">
+        <a class="@ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" asp-page="./TwoFactorAuthentication" id="two-factor-nav">
+            <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            Two-Factor Auth
+        </a>
+    </li>
+    <li class="pw-manage-nav__item">
+        <a class="@ManageNavPages.PersonalDataNavClass(ViewContext)" asp-page="./PersonalData" id="personal-data-nav">
+            <svg class="pw-manage-nav__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+            Personal Data
+        </a>
+    </li>
+</ul>

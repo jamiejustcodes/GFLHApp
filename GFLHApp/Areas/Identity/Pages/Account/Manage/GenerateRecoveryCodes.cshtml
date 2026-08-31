@@ -1,0 +1,35 @@
+@page
+@model GenerateRecoveryCodesModel
+@{
+    ViewData["Title"] = "Generate Recovery Codes";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<span class="pw-manage-content__eyebrow">Security · Two-Factor Auth</span>
+<h2 class="pw-manage-content__title">Generate Recovery Codes</h2>
+<p class="pw-manage-content__sub">Recovery codes let you sign in if you ever lose access to your authenticator app.</p>
+
+<div class="pw-manage-alert pw-manage-alert--warning" role="alert">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>
+        <strong>Save your recovery codes somewhere safe.</strong><br>
+        If you lose your device and don't have recovery codes, you will be locked out of your account.
+        Generating new codes does <em>not</em> change your authenticator app key — to change that, <a asp-page="./ResetAuthenticator" class="pw-link" style="font-size:inherit;">reset your authenticator</a>.
+    </div>
+</div>
+
+<div class="pw-danger-zone">
+    <h3 class="pw-danger-zone__title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Generate new codes
+    </h3>
+    <p class="pw-danger-zone__desc">Generating new codes will <strong>invalidate all existing recovery codes</strong>. Make sure to save the new ones immediately.</p>
+    <form method="post">
+        <button class="pw-btn pw-btn--danger pw-btn--md" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            Generate recovery codes
+        </button>
+    </form>
+</div>

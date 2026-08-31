@@ -1,0 +1,58 @@
+@page
+@model LoginWithRecoveryCodeModel
+@{
+    ViewData["Title"] = "Recovery code sign-in";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Recovery code</h1>
+            <p class="pw-auth-card__subtitle">Sign in using a saved recovery code</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <div style="background:var(--yellow-100);border:1.5px solid #FDE68A;border-radius:var(--r-md);padding:14px 16px;margin-bottom:24px;font-size:13.5px;color:#92400E;display:flex;gap:10px;align-items:flex-start;">
+                <i data-lucide="alert-triangle" style="width:17px;height:17px;stroke-width:2;flex-shrink:0;margin-top:1px"></i>
+                <span>This sign-in won't be remembered. After signing in, set up your authenticator again to restore full 2FA protection.</span>
+            </div>
+
+            <form method="post" class="pw-auth-form">
+                <div asp-validation-summary="ModelOnly" class="pw-auth-errors" role="alert"></div>
+
+                <div class="form-floating mb-4">
+                    <input asp-for="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="xxxx-xxxx"
+                           style="font-family:'JetBrains Mono','Courier New',monospace;letter-spacing:.08em;font-size:16px;font-weight:600;" />
+                    <label asp-for="Input.RecoveryCode">Recovery code</label>
+                    <span asp-validation-for="Input.RecoveryCode" class="pw-auth-field-error"></span>
+                </div>
+
+                <button type="submit" class="pw-btn pw-btn--primary pw-btn--lg pw-auth-submit">
+                    <i data-lucide="key" style="width:17px;height:17px;stroke-width:2.5"></i>
+                    Sign in with recovery code
+                </button>
+            </form>
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <a asp-page="./LoginWith2fa" asp-route-returnUrl="@Model.ReturnUrl">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;stroke-width:2.5;vertical-align:middle;margin-right:4px"></i>
+                    Use authenticator code instead
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

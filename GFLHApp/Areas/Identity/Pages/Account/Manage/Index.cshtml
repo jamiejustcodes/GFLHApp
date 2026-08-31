@@ -1,0 +1,36 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<span class="pw-manage-content__eyebrow">Account</span>
+<h2 class="pw-manage-content__title">Your Profile</h2>
+<p class="pw-manage-content__sub">Update your display name and contact details.</p>
+
+<form id="profile-form" method="post" class="pw-manage-form" style="max-width:480px;">
+    <div asp-validation-summary="ModelOnly" class="pw-manage-alert pw-manage-alert--danger" role="alert"></div>
+
+    <div class="form-floating mb-3">
+        <input asp-for="Username" class="form-control" placeholder="Username" disabled />
+        <label asp-for="Username">Username</label>
+    </div>
+
+    <div class="form-floating mb-4">
+        <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone number" />
+        <label asp-for="Input.PhoneNumber">Phone number</label>
+        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <button id="update-profile-button" type="submit" class="pw-btn pw-btn--primary pw-btn--md" style="width:100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save changes
+    </button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

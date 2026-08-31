@@ -1,0 +1,40 @@
+@page
+@model ConfirmEmailChangeModel
+@{
+    ViewData["Title"] = "Email change confirmed";
+    ViewData["FullWidth"] = true;
+    var isError = Model.StatusMessage?.StartsWith("Error") == true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">@(isError ? "Change failed" : "Email updated")</h1>
+            <p class="pw-auth-card__subtitle">@(isError ? "We couldn't confirm your new email" : "Your email address has changed")</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            @if (!string.IsNullOrEmpty(Model.StatusMessage))
+            {
+                <div class="pw-auth-status">
+                    <div class="pw-auth-status__icon @(isError ? "pw-auth-status__icon--danger" : "pw-auth-status__icon--success")">
+                        <i data-lucide="@(isError ? "x-circle" : "check-circle-2")" style="width:34px;height:34px;stroke-width:1.75"></i>
+                    </div>
+                    <p class="pw-auth-status__title">@(isError ? "Something went wrong" : "All done!")</p>
+                    <p class="pw-auth-status__body">@Model.StatusMessage</p>
+                    <a asp-page="./Login" class="pw-btn pw-btn--primary pw-btn--md" style="width:100%;justify-content:center;">
+                        <i data-lucide="log-in" style="width:16px;height:16px;stroke-width:2.5"></i>
+                        Sign in
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

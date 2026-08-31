@@ -1,0 +1,62 @@
+@page
+@model LoginWith2faModel
+@{
+    ViewData["Title"] = "Two-factor authentication";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Verify your identity</h1>
+            <p class="pw-auth-card__subtitle">Enter the code from your authenticator app</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <div style="background:var(--green-100);border:1.5px solid var(--green-200);border-radius:var(--r-md);padding:14px 16px;margin-bottom:24px;font-size:13.5px;color:var(--green-800);display:flex;gap:10px;align-items:flex-start;">
+                <i data-lucide="shield" style="width:17px;height:17px;stroke-width:2;flex-shrink:0;margin-top:1px"></i>
+                <span>Open your authenticator app and enter the 6-digit code shown for this account.</span>
+            </div>
+
+            <form method="post" asp-route-returnUrl="@Model.ReturnUrl" class="pw-auth-form">
+                <input asp-for="RememberMe" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="pw-auth-errors" role="alert"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.TwoFactorCode" class="form-control" autocomplete="off" placeholder="000000"
+                           style="font-size:20px;letter-spacing:.25em;font-family:var(--font-display);font-weight:700;text-align:center" />
+                    <label asp-for="Input.TwoFactorCode">Authenticator code</label>
+                    <span asp-validation-for="Input.TwoFactorCode" class="pw-auth-field-error"></span>
+                </div>
+
+                <div class="pw-auth-check-row mb-4">
+                    <input asp-for="Input.RememberMachine" type="checkbox" id="rememberMachine" />
+                    <label for="rememberMachine">@Html.DisplayNameFor(m => m.Input.RememberMachine)</label>
+                </div>
+
+                <button type="submit" class="pw-btn pw-btn--primary pw-btn--lg pw-auth-submit">
+                    <i data-lucide="shield-check" style="width:17px;height:17px;stroke-width:2.5"></i>
+                    Verify
+                </button>
+            </form>
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <span>No device access?</span>
+                <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Use a recovery code</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

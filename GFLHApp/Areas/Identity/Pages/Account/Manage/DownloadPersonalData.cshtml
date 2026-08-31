@@ -1,0 +1,26 @@
+@page
+@model DownloadPersonalDataModel
+@{
+    ViewData["Title"] = "Download Your Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<span class="pw-manage-content__eyebrow">Privacy</span>
+<h2 class="pw-manage-content__title">Download Your Data</h2>
+<p class="pw-manage-content__sub">Your personal data export is being prepared. The download will begin shortly.</p>
+
+<div class="pw-manage-alert pw-manage-alert--success" role="status">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span>Your data file is ready. Check your downloads folder.</span>
+</div>
+
+<div style="margin-top:8px;">
+    <a asp-page="./PersonalData" class="pw-btn pw-btn--ghost pw-btn--sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        Back to personal data
+    </a>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,60 @@
+@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Account created";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Almost there!</h1>
+            <p class="pw-auth-card__subtitle">One last step to get started</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <div class="pw-auth-status">
+                @if (Model.DisplayConfirmAccountLink)
+                {
+                    <div class="pw-auth-status__icon pw-auth-status__icon--warning">
+                        <i data-lucide="construction" style="width:34px;height:34px;stroke-width:1.75"></i>
+                    </div>
+                    <p class="pw-auth-status__title">Confirmation</p>
+                    <p class="pw-auth-status__body">
+                        No real email sender is configured yet.
+                        <a id="confirm-link" href="@Model.EmailConfirmationUrl">Click here to confirm your account</a>
+                        (this link would normally be emailed to you).
+                    </p>
+                }
+                else
+                {
+                    <div class="pw-auth-status__icon pw-auth-status__icon--success">
+                        <i data-lucide="mail-check" style="width:34px;height:34px;stroke-width:1.75"></i>
+                    </div>
+                    <p class="pw-auth-status__title">Check your email</p>
+                    <p class="pw-auth-status__body">
+                        We've sent a confirmation link to your email address.
+                        Click the link to activate your account — it'll only take a second.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <span>Wrong email?</span>
+                <a asp-page="./Register">Start over</a>
+            </div>
+            <div class="pw-auth-link-row">
+                <a asp-page="./ResendEmailConfirmation">Resend confirmation email</a>
+            </div>
+        </div>
+    </div>
+</div>

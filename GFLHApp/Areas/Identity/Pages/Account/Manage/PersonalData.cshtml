@@ -1,0 +1,46 @@
+@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<span class="pw-manage-content__eyebrow">Privacy</span>
+<h2 class="pw-manage-content__title">Personal Data</h2>
+<p class="pw-manage-content__sub">Your account holds personal data you've shared with us. You can download a copy or permanently delete it.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;max-width:560px;">
+    <div class="pw-data-card">
+        <div class="pw-data-card__icon pw-data-card__icon--green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <div class="pw-data-card__body">
+            <h3 class="pw-data-card__title">Download your data</h3>
+            <p class="pw-data-card__desc">Get a copy of all personal data we hold on your account as a JSON file.</p>
+            <form id="download-data" asp-page="DownloadPersonalData" method="post">
+                <button class="pw-btn pw-btn--primary pw-btn--sm" type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download data
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="pw-data-card pw-data-card--danger">
+        <div class="pw-data-card__icon pw-data-card__icon--red">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </div>
+        <div class="pw-data-card__body">
+            <h3 class="pw-data-card__title" style="color:#991B1B;">Delete your account</h3>
+            <p class="pw-data-card__desc"><strong>This is permanent and cannot be undone.</strong> Deleting your data will close your Greenfield account.</p>
+            <a id="delete" asp-page="DeletePersonalData" class="pw-btn pw-btn--danger pw-btn--sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete account
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

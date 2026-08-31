@@ -1,0 +1,61 @@
+@page
+@model EnableAuthenticatorModel
+@{
+    ViewData["Title"] = "Set Up Authenticator";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<span class="pw-manage-content__eyebrow">Security · Two-Factor Auth</span>
+<h2 class="pw-manage-content__title">Set Up Authenticator App</h2>
+<p class="pw-manage-content__sub">Follow these steps to link your authenticator app and enable 2FA.</p>
+
+<ol class="pw-setup-steps" role="list">
+    <li class="pw-setup-step">
+        <span class="pw-setup-step__num" aria-hidden="true">1</span>
+        <div class="pw-setup-step__body">
+            <strong>Download an authenticator app</strong><br>
+            Get <a href="https://go.microsoft.com/fwlink/?Linkid=825072">Microsoft Authenticator for Android</a> or
+            <a href="https://go.microsoft.com/fwlink/?Linkid=825073">iOS</a>, or
+            <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en">Google Authenticator for Android</a> or
+            <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">iOS</a>.
+        </div>
+    </li>
+    <li class="pw-setup-step">
+        <span class="pw-setup-step__num" aria-hidden="true">2</span>
+        <div class="pw-setup-step__body">
+            <strong>Scan the QR code or enter the key below</strong><br>
+            Open your authenticator app and add a new account. Spaces and casing don't matter.
+            <div class="pw-qr-container" id="qrCode" style="margin-top:16px;"></div>
+            <div id="qrCodeData" data-url="@Model.AuthenticatorUri"></div>
+            <div class="pw-manage-alert pw-manage-alert--info" style="margin-top:16px;margin-bottom:0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Manual key: <code class="pw-shared-key">@Model.SharedKey</code></span>
+            </div>
+        </div>
+    </li>
+    <li class="pw-setup-step">
+        <span class="pw-setup-step__num" aria-hidden="true">3</span>
+        <div class="pw-setup-step__body">
+            <strong>Enter the verification code from your app</strong><br>
+            Once you've scanned the QR code, your app will show a 6-digit code. Enter it below.
+            <form id="send-code" method="post" class="pw-manage-form" style="margin-top:20px;max-width:320px;">
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Code" class="form-control" autocomplete="off" placeholder="6-digit code" inputmode="numeric" />
+                    <label asp-for="Input.Code">Verification code</label>
+                    <span asp-validation-for="Input.Code" class="text-danger"></span>
+                </div>
+                <button type="submit" class="pw-btn pw-btn--primary pw-btn--md" style="width:100%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Verify and activate
+                </button>
+                <div asp-validation-summary="ModelOnly" class="pw-manage-alert pw-manage-alert--danger" role="alert" style="margin-top:16px;margin-bottom:0;"></div>
+            </form>
+        </div>
+    </li>
+</ol>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

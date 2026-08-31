@@ -1,0 +1,17 @@
+@model string
+
+@if (!string.IsNullOrEmpty(Model))
+{
+    var isError = Model.StartsWith("Error");
+    var alertClass = isError ? "pw-manage-alert--danger" : "pw-manage-alert--success";
+    var icon = isError ? "alert-circle" : "check-circle-2";
+
+    <div class="pw-manage-alert @alertClass" role="alert">
+        <i data-lucide="@icon" style="width:18px;height:18px;stroke-width:2;flex-shrink:0;margin-top:1px"></i>
+        <span>@Model</span>
+        <button type="button" class="pw-manage-alert__dismiss" aria-label="Dismiss"
+                onclick="this.closest('.pw-manage-alert').remove()">
+            <i data-lucide="x" style="width:16px;height:16px;stroke-width:2.5"></i>
+        </button>
+    </div>
+}

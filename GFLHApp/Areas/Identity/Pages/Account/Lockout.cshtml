@@ -1,0 +1,45 @@
+@page
+@model LockoutModel
+@{
+    ViewData["Title"] = "Account locked";
+    ViewData["FullWidth"] = true;
+}
+
+<div class="pw-auth-page">
+    <div class="pw-auth-blob pw-auth-blob--1" style="background:var(--orange);opacity:.12"></div>
+    <div class="pw-auth-blob pw-auth-blob--2"></div>
+
+    <div class="pw-auth-card">
+        <div class="pw-auth-card__header" style="background:linear-gradient(135deg,#7f1d1d 0%,#450a0a 50%,#991b1b 100%)">
+            <div class="pw-auth-card__brand">
+                <i data-lucide="sprout" style="width:18px;height:18px;stroke-width:2.5"></i>
+                Greenfield
+            </div>
+            <h1 class="pw-auth-card__title">Account locked</h1>
+            <p class="pw-auth-card__subtitle">Too many failed sign-in attempts</p>
+        </div>
+
+        <div class="pw-auth-card__body">
+            <div class="pw-auth-status">
+                <div class="pw-auth-status__icon pw-auth-status__icon--danger">
+                    <i data-lucide="lock" style="width:34px;height:34px;stroke-width:1.75"></i>
+                </div>
+                <p class="pw-auth-status__title">Temporarily locked out</p>
+                <p class="pw-auth-status__body">
+                    Your account has been locked for security. Please wait a few minutes and try again,
+                    or contact support if you believe this is a mistake.
+                </p>
+                <a asp-page="./ForgotPassword" class="pw-btn pw-btn--outline pw-btn--md" style="width:100%;justify-content:center;">
+                    <i data-lucide="key" style="width:16px;height:16px;stroke-width:2.5"></i>
+                    Reset your password
+                </a>
+            </div>
+        </div>
+
+        <div class="pw-auth-card__footer">
+            <div class="pw-auth-link-row">
+                <a asp-page="./Login">Try signing in again</a>
+            </div>
+        </div>
+    </div>
+</div>

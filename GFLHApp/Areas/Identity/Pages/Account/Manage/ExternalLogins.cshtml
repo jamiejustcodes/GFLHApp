@@ -1,0 +1,64 @@
+@page
+@model ExternalLoginsModel
+@{
+    ViewData["Title"] = "External Logins";
+    ViewData["ActivePage"] = ManageNavPages.ExternalLogins;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<span class="pw-manage-content__eyebrow">Security</span>
+<h2 class="pw-manage-content__title">External Logins</h2>
+<p class="pw-manage-content__sub">Link third-party accounts to sign in to Greenfield without a password.</p>
+
+@if (Model.CurrentLogins?.Count > 0)
+{
+    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text);margin:0 0 14px;">Linked accounts</h3>
+    <div style="max-width:560px;margin-bottom:32px;">
+        @foreach (var login in Model.CurrentLogins)
+        {
+            <div class="pw-login-provider">
+                <span class="pw-login-provider__name" id="@($"login-provider-{login.LoginProvider}")">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    @login.ProviderDisplayName
+                </span>
+                @if (Model.ShowRemoveButton)
+                {
+                    <form id="@($"remove-login-{login.LoginProvider}")" asp-page-handler="RemoveLogin" method="post" style="display:inline;">
+                        <input asp-for="@login.LoginProvider" name="LoginProvider" type="hidden" />
+                        <input asp-for="@login.ProviderKey" name="ProviderKey" type="hidden" />
+                        <button type="submit" class="pw-btn pw-btn--ghost pw-btn--sm" title="Remove @login.ProviderDisplayName login">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Remove
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+    </div>
+}
+
+@if (Model.OtherLogins?.Count > 0)
+{
+    <hr class="pw-manage-divider" />
+    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text);margin:0 0 6px;">Add another login</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin:0 0 20px;">Link another service to make signing in even easier.</p>
+    <form id="link-login-form" asp-page-handler="LinkLogin" method="post">
+        <div id="socialLoginList" class="pw-manage-actions">
+            @foreach (var provider in Model.OtherLogins)
+            {
+                <button id="@($"link-login-button-{provider.Name}")" type="submit" class="pw-btn pw-btn--ghost pw-btn--sm" name="provider" value="@provider.Name" title="Link your @provider.DisplayName account">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    @provider.DisplayName
+                </button>
+            }
+        </div>
+    </form>
+}
+
+@if ((Model.CurrentLogins == null || Model.CurrentLogins.Count == 0) && (Model.OtherLogins == null || Model.OtherLogins.Count == 0))
+{
+    <div class="pw-manage-info-block">
+        No external login providers are currently configured for this application.
+    </div>
+}

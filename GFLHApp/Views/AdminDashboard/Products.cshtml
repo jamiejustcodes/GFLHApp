@@ -1,0 +1,225 @@
+@model IEnumerable<GFLHApp.Models.Products>
+@using System.Linq
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Products";
+    ViewData["AdminSection"] = "products";
+    string search   = ViewBag.Search       ?? "";
+    string category = ViewBag.Category     ?? "";
+    string avail    = ViewBag.Availability ?? "";
+    string sort     = ViewBag.Sort         ?? "name";
+    var    cats     = (ViewBag.Categories  as IEnumerable<string>) ?? Enumerable.Empty<string>();
+}
+
+<style>
+.adm-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: flex-end; }
+.adm-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.adm-filter-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.adm-filter-input, .adm-filter-select {
+    height: 38px; padding: 0 12px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    color: var(--text); background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    outline: none; transition: border-color .15s; appearance: none; -webkit-appearance: none;
+}
+.adm-filter-input:focus, .adm-filter-select:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.adm-filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+}
+.adm-btn-filter {
+    height: 38px; padding: 0 16px; background: var(--green); color: #fff; border: none; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.adm-btn-filter:hover { background: var(--green-700); }
+.adm-btn-clear {
+    height: 38px; padding: 0 14px; background: transparent; color: var(--text-muted);
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.adm-btn-clear:hover { border-color: var(--text-muted); color: var(--text); }
+.adm-btn-add {
+    height: 38px; padding: 0 16px; background: var(--green); color: #fff; border: none; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px; margin-left: auto;
+}
+.adm-btn-add:hover { background: var(--green-700); color: #fff; }
+
+.adm-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border-bottom: 1.5px solid var(--border); background: var(--cream); white-space: nowrap; }
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #fafaf9; }
+.adm-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: var(--r-full); font-size: 11px; font-weight: 700; }
+.adm-badge--ok   { background: var(--green-100); color: var(--green); }
+.adm-badge--off  { background: #f3f4f6; color: var(--text-muted); }
+.adm-badge--low  { background: var(--orange-100); color: var(--orange); }
+
+.adm-prod-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.adm-prod-placeholder { width: 36px; height: 36px; border-radius: 8px; background: var(--green-100); color: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.adm-avail-toggle { position: relative; display: inline-block; width: 38px; height: 21px; }
+.adm-avail-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.adm-avail-toggle__track { position: absolute; inset: 0; background: var(--border); border-radius: 999px; cursor: pointer; transition: background .2s; }
+.adm-avail-toggle__track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
+.adm-avail-toggle input:checked + .adm-avail-toggle__track { background: var(--green); }
+.adm-avail-toggle input:checked + .adm-avail-toggle__track::after { transform: translateX(17px); }
+
+.adm-tbl-btn { height: 28px; padding: 0 10px; border-radius: var(--r-sm); font-size: 11px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all .1s; white-space: nowrap; }
+.adm-tbl-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-100); }
+.adm-tbl-btn--danger:hover { border-color: #DC2626; color: #DC2626; background: #fef2f2; }
+.adm-results-info { font-size: 13px; color: var(--text-muted); padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--cream); }
+</style>
+
+<div class="adm-filters">
+    <form method="get" action="/AdminDashboard/Products" style="display:contents;">
+        <div class="adm-filter-group">
+            <label>Search</label>
+            <input name="search" class="adm-filter-input" value="@search" placeholder="Name, category, producer…" style="width:220px;" />
+        </div>
+        <div class="adm-filter-group">
+            <label>Category</label>
+            <select name="category" class="adm-filter-select">
+                <option value="">All categories</option>
+                @foreach (var c in cats) { <option value="@c" selected="@(category==c)">@c</option> }
+            </select>
+        </div>
+        <div class="adm-filter-group">
+            <label>Availability</label>
+            <select name="availability" class="adm-filter-select">
+                <option value="">All</option>
+                <option value="available"   selected="@(avail=="available")">Available</option>
+                <option value="unavailable" selected="@(avail=="unavailable")">Hidden</option>
+                <option value="lowstock"    selected="@(avail=="lowstock")">Low stock</option>
+            </select>
+        </div>
+        <div class="adm-filter-group">
+            <label>Sort</label>
+            <select name="sort" class="adm-filter-select">
+                <option value="name"       selected="@(sort=="name")">Name A–Z</option>
+                <option value="price_asc"  selected="@(sort=="price_asc")">Price ↑</option>
+                <option value="price_desc" selected="@(sort=="price_desc")">Price ↓</option>
+                <option value="stock_asc"  selected="@(sort=="stock_asc")">Stock ↑</option>
+                <option value="stock_desc" selected="@(sort=="stock_desc")">Stock ↓</option>
+            </select>
+        </div>
+        <button type="submit" class="adm-btn-filter"><i data-lucide="search" style="width:13px;height:13px;" aria-hidden="true"></i>Filter</button>
+        @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(avail))
+        {
+            <a href="/AdminDashboard/Products" class="adm-btn-clear"><i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>Clear</a>
+        }
+    </form>
+    <a href="/Products/Create" class="adm-btn-add"><i data-lucide="plus" style="width:13px;height:13px;" aria-hidden="true"></i>Add product</a>
+</div>
+
+<div class="adm-card">
+    <div class="adm-results-info">@Model.Count() product@(Model.Count() == 1 ? "" : "s") found</div>
+
+    @if (Model.Any())
+    {
+        <div style="overflow-x:auto;">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"></th>
+                        <th>Product</th>
+                        <th>Producer</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Listed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model)
+                {
+                    bool low = p.QuantityInStock <= 5 && p.Available;
+                    <tr>
+                        <td style="padding:8px 8px 8px 14px;">
+                            @if (!string.IsNullOrEmpty(p.ImagePath))
+                            { <img src="@p.ImagePath" alt="@p.ItemName" class="adm-prod-thumb" /> }
+                            else
+                            { <div class="adm-prod-placeholder"><i data-lucide="sprout" style="width:14px;height:14px;" aria-hidden="true"></i></div> }
+                        </td>
+                        <td>
+                            <div style="font-weight:700;">@p.ItemName</div>
+                            @if (!string.IsNullOrEmpty(p.Description))
+                            { <div style="font-size:11px;color:var(--text-muted);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@p.Description</div> }
+                        </td>
+                        <td style="color:var(--text-muted);">@(p.Producers?.ProducerName ?? "—")</td>
+                        <td>
+                            <span class="adm-badge adm-badge--ok" style="background:var(--cream);color:var(--text-muted);border:1px solid var(--border);">@p.Category</span>
+                        </td>
+                        <td style="font-weight:700;">£@p.ItemPrice.ToString("0.00")</td>
+                        <td>
+                            @if (low)
+                            { <span class="adm-badge adm-badge--low">@p.QuantityInStock low</span> }
+                            else
+                            { <span style="font-weight:600;">@p.QuantityInStock</span> }
+                        </td>
+                        <td>
+                            <label class="adm-avail-toggle" title="Toggle availability">
+                                <input type="checkbox" @(p.Available ? "checked" : "")
+                                       class="adm-toggle-input"
+                                       data-product-id="@p.ProductsId"
+                                       aria-label="Toggle @p.ItemName" />
+                                <span class="adm-avail-toggle__track" aria-hidden="true"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:5px;">
+                                <a href="/Products/Details/@p.ProductsId" class="adm-tbl-btn">View</a>
+                                <a href="/Products/Edit/@p.ProductsId" class="adm-tbl-btn"><i data-lucide="pencil" style="width:11px;height:11px;" aria-hidden="true"></i></a>
+                                <form asp-action="DeleteProduct" method="post" style="display:inline;"
+                                      onsubmit="return confirm('Delete @p.ItemName? This cannot be undone.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@p.ProductsId" />
+                                    <button type="submit" class="adm-tbl-btn adm-tbl-btn--danger">
+                                        <i data-lucide="trash-2" style="width:11px;height:11px;" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div style="padding:48px;text-align:center;color:var(--text-muted);">
+            <i data-lucide="package-open" style="width:40px;height:40px;display:block;margin:0 auto 10px;opacity:.3;" aria-hidden="true"></i>
+            <p style="font-size:14px;margin:0;">No products match your filters.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        if (window.lucide) lucide.createIcons();
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
+
+        document.querySelectorAll('.adm-toggle-input').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                var id = cb.dataset.productId;
+                cb.disabled = true;
+                var fd = new FormData();
+                fd.append('id', id);
+                if (token) fd.append('__RequestVerificationToken', token.value);
+                fetch('/AdminDashboard/ToggleProductAvailability', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token ? token.value : '' },
+                    body: fd
+                }).then(function (r) { return r.json(); })
+                  .then(function (d) { if (!d.success) cb.checked = !cb.checked; cb.disabled = false; })
+                  .catch(function () { cb.checked = !cb.checked; cb.disabled = false; });
+            });
+        });
+    }());
+    </script>
+    @Html.AntiForgeryToken()
+}

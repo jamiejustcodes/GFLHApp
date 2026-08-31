@@ -1,0 +1,269 @@
+@model GFLHApp.Models.ProducerOrders
+@{
+    ViewData["Title"] = "Cancel Order #" + Model.Orders.OrdersId;
+    ViewData["FullWidth"] = true;
+
+    var items = Model.OrderProducts.Where(op => op.ProducerOrdersId == Model.ProducerOrdersId).ToList();
+}
+
+<style>
+.pw-admin-page { min-height: 100vh; background: var(--cream); }
+
+.pw-admin-header {
+    background: linear-gradient(160deg, var(--cream) 0%, #f0ebe0 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 0 28px;
+}
+.pw-admin-header__inner {
+    max-width: 780px; margin: 0 auto; padding: 0 24px;
+}
+.pw-admin-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    list-style: none; margin: 0 0 16px; padding: 0;
+    font-size: 13px; font-weight: 500; flex-wrap: wrap;
+}
+.pw-admin-breadcrumb li { display: flex; align-items: center; gap: 6px; }
+.pw-admin-breadcrumb li + li::before { content: '/'; color: var(--text-muted); opacity: .5; }
+.pw-admin-breadcrumb a { color: var(--text-muted); transition: color .15s; text-decoration: none; }
+.pw-admin-breadcrumb a:hover { color: var(--green); }
+.pw-admin-breadcrumb [aria-current] { color: var(--text); font-weight: 600; }
+
+.pw-admin-header__title {
+    display: flex; align-items: center; gap: 14px;
+}
+.pw-admin-header__icon {
+    width: 44px; height: 44px;
+    background: #fee2e2; border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    color: #DC2626; flex-shrink: 0;
+}
+.pw-admin-header__title h1 {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 700; color: var(--text); margin: 0;
+}
+.pw-admin-header__title p { font-size: 13px; color: var(--text-muted); margin: 2px 0 0; }
+
+.pw-admin-body { max-width: 780px; margin: 0 auto; padding: 36px 24px 80px; }
+
+.pw-cancel-card {
+    background: #fff; border-radius: var(--r-lg);
+    border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);
+    overflow: hidden; margin-bottom: 20px;
+}
+.pw-cancel-card__head {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+    display: flex; align-items: center; gap: 10px;
+}
+.pw-cancel-card__head h2 {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 700; color: var(--text); margin: 0;
+}
+.pw-cancel-card__body { padding: 20px 24px; }
+.pw-cancel-card__desc { font-size: 13px; color: var(--text-muted); margin: 0 0 18px; line-height: 1.6; }
+
+/* Items table */
+.pw-items-table { width: 100%; border-collapse: collapse; }
+.pw-items-table th {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-muted);
+    padding: 8px 12px; text-align: left;
+    border-bottom: 1.5px solid var(--border);
+}
+.pw-items-table td {
+    padding: 12px; border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--text); vertical-align: middle;
+}
+.pw-items-table tr:last-child td { border-bottom: none; }
+.pw-items-table tfoot td {
+    padding: 12px; font-size: 14px; font-weight: 700; color: var(--text);
+    border-top: 1.5px solid var(--border);
+}
+
+.pw-item-thumb {
+    display: flex; align-items: center; gap: 10px;
+}
+.pw-item-thumb img {
+    width: 36px; height: 36px; border-radius: 8px; object-fit: cover;
+}
+.pw-item-thumb__placeholder {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--green-100); color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.pw-btn-remove {
+    height: 32px; padding: 0 12px;
+    background: transparent; color: #DC2626;
+    border: 1.5px solid #fecaca; border-radius: var(--r-sm);
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background .12s, border-color .12s;
+}
+.pw-btn-remove:hover { background: #fef2f2; border-color: #DC2626; }
+
+.pw-btn-cancel-all {
+    height: 42px; padding: 0 22px;
+    background: #DC2626; color: #fff;
+    border: none; border-radius: var(--r-sm);
+    font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background .15s, transform .1s;
+    box-shadow: 0 2px 8px rgba(220,38,38,.2);
+}
+.pw-btn-cancel-all:hover { background: #b91c1c; transform: translateY(-1px); }
+.pw-btn-cancel-all:active { transform: translateY(0); }
+
+.pw-btn-back {
+    height: 42px; padding: 0 18px;
+    background: transparent; color: var(--text-muted);
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color .15s, color .15s;
+}
+.pw-btn-back:hover { border-color: var(--text-muted); color: var(--text); }
+</style>
+
+<div class="pw-admin-page">
+
+    <div class="pw-admin-header">
+        <div class="pw-admin-header__inner">
+            <nav aria-label="Breadcrumb">
+                <ol class="pw-admin-breadcrumb">
+                    <li><a asp-controller="ProducerDashboard" asp-action="Index">Dashboard</a></li>
+                    <li><span aria-current="page">Cancel order #@Model.Orders.OrdersId</span></li>
+                </ol>
+            </nav>
+            <div class="pw-admin-header__title">
+                <div class="pw-admin-header__icon" aria-hidden="true">
+                    <i data-lucide="x-circle"></i>
+                </div>
+                <div>
+                    <h1>Cancel order #@Model.Orders.OrdersId</h1>
+                    <p>Placed @Model.Orders.OrderDate.ToString("d MMMM yyyy") &middot; @items.Count item@(items.Count == 1 ? "" : "s")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pw-admin-body">
+
+        <!-- Individual item removal -->
+        <div class="pw-cancel-card">
+            <div class="pw-cancel-card__head">
+                <i data-lucide="list-x" style="width:17px;height:17px;color:var(--text-muted);" aria-hidden="true"></i>
+                <h2>Remove individual items</h2>
+            </div>
+            <div class="pw-cancel-card__body">
+                <p class="pw-cancel-card__desc">
+                    Remove specific items from this order. Stock will be automatically restocked when an item is removed.
+                </p>
+                <table class="pw-items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Unit price</th>
+                            <th>Line total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="pw-item-thumb">
+                                        @if (!string.IsNullOrEmpty(item.Products?.ImagePath))
+                                        {
+                                            <img src="@item.Products.ImagePath" alt="@item.Products?.ItemName" />
+                                        }
+                                        else
+                                        {
+                                            <div class="pw-item-thumb__placeholder">
+                                                <i data-lucide="sprout" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                            </div>
+                                        }
+                                        <strong>@item.Products?.ItemName</strong>
+                                    </div>
+                                </td>
+                                <td>@item.ProductQuantity</td>
+                                <td>£@item.Products?.ItemPrice.ToString("0.00")</td>
+                                <td>£@((item.Products?.ItemPrice * item.ProductQuantity)?.ToString("0.00"))</td>
+                                <td>
+                                    <form asp-action="CancelOrderItem" asp-route-id="@item.OrderProductsId" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="pw-btn-remove">
+                                            <i data-lucide="trash-2" style="width:12px;height:12px;" aria-hidden="true"></i>
+                                            Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right;color:var(--text-muted);font-size:13px;">Your subtotal</td>
+                            <td>£@Model.ProducerSubtotal.ToString("0.00")</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cancel entire slice -->
+        <div class="pw-cancel-card">
+            <div class="pw-cancel-card__head">
+                <i data-lucide="ban" style="width:17px;height:17px;color:#DC2626;" aria-hidden="true"></i>
+                <h2 style="color:#DC2626;">Cancel entire order slice</h2>
+            </div>
+            <div class="pw-cancel-card__body">
+                <p class="pw-cancel-card__desc">
+                    Cancel all @items.Count item@(items.Count == 1 ? "" : "s") in your slice of this order at once.
+                    All stock will be restocked automatically. <strong>This cannot be undone.</strong>
+                </p>
+                <form asp-action="CancelProducerOrder" asp-route-id="@Model.ProducerOrdersId" method="post"
+                      id="cancelAllForm">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="pw-btn-cancel-all" id="cancelAllBtn">
+                        <i data-lucide="x-circle" style="width:15px;height:15px;" aria-hidden="true"></i>
+                        Cancel entire order slice
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Back -->
+        <div style="margin-top:8px;">
+            <a asp-controller="ProducerDashboard" asp-action="Index" class="pw-btn-back">
+                <i data-lucide="arrow-left" style="width:15px;height:15px;" aria-hidden="true"></i>
+                Back to dashboard
+            </a>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        if (window.lucide) lucide.createIcons();
+
+        var cancelAllForm = document.getElementById('cancelAllForm');
+        if (cancelAllForm) {
+            cancelAllForm.addEventListener('submit', function (e) {
+                if (!confirm('Cancel your entire slice for order #@Model.Orders.OrdersId? This cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }());
+    </script>
+}

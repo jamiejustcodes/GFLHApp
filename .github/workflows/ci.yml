@@ -1,0 +1,31 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Run Automated Tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9.0 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore .NET Solution
+        run: dotnet restore GFLHApp.sln
+
+      - name: Build .NET 9.0 Solution (Release)
+        run: dotnet build GFLHApp.sln --no-restore -c Release
+
+      - name: Run Test Matrix (xUnit & Integration)
+        run: dotnet test GFLHApp.sln --no-build -c Release --verbosity normal

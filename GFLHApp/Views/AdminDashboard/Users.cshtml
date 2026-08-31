@@ -1,0 +1,183 @@
+@using GFLHApp.Controllers
+@model IEnumerable<AdminUserRow>
+@using System.Linq
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Users";
+    ViewData["AdminSection"] = "users";
+    string search  = ViewBag.Search ?? "";
+    string role    = ViewBag.Role   ?? "";
+    var    allRoles= (ViewBag.AllRoles as IEnumerable<string>) ?? Enumerable.Empty<string>();
+}
+
+<style>
+.adm-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: flex-end; }
+.adm-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.adm-filter-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.adm-filter-input, .adm-filter-select {
+    height: 38px; padding: 0 12px; font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    color: var(--text); background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    outline: none; transition: border-color .15s; appearance: none; -webkit-appearance: none;
+}
+.adm-filter-input:focus, .adm-filter-select:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.adm-filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+}
+.adm-btn-filter { height: 38px; padding: 0 16px; background: var(--green); color: #fff; border: none; border-radius: var(--r-sm); font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.adm-btn-filter:hover { background: var(--green-700); }
+.adm-btn-clear { height: 38px; padding: 0 14px; background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.adm-btn-clear:hover { border-color: var(--text-muted); color: var(--text); }
+
+.adm-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border-bottom: 1.5px solid var(--border); background: var(--cream); }
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #fafaf9; }
+
+.adm-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--green-100); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.adm-avatar--purple { background: var(--purple-100); color: var(--purple); }
+.adm-avatar--orange { background: var(--orange-100); color: var(--orange); }
+
+.adm-role-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: var(--r-full);
+    font-size: 11px; font-weight: 700; margin-right: 3px;
+}
+.adm-role-chip--admin    { background: var(--purple-100); color: var(--purple); }
+.adm-role-chip--producer { background: var(--green-100); color: var(--green); }
+.adm-role-chip--default  { background: var(--cream-2); color: var(--text-muted); }
+
+.adm-role-form { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.adm-role-select { height: 26px; padding: 0 22px 0 8px; font-size: 11px; font-weight: 600; color: var(--text); background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-sm); outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 6px center; }
+.adm-role-btn { height: 26px; padding: 0 10px; border-radius: var(--r-sm); font-size: 11px; font-weight: 700; cursor: pointer; border: none; background: var(--green); color: #fff; }
+.adm-role-btn:hover { background: var(--green-700); }
+.adm-role-remove { height: 22px; width: 22px; border-radius: 50%; background: transparent; border: 1.5px solid #fecaca; color: #DC2626; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .1s; }
+.adm-role-remove:hover { background: #fef2f2; }
+
+.adm-results-info { font-size: 13px; color: var(--text-muted); padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--cream); }
+</style>
+
+<form method="get" action="/AdminDashboard/Users">
+    <div class="adm-filters">
+        <div class="adm-filter-group">
+            <label>Search</label>
+            <input name="search" class="adm-filter-input" value="@search" placeholder="Email or username…" style="width:260px;" />
+        </div>
+        <div class="adm-filter-group">
+            <label>Role</label>
+            <select name="role" class="adm-filter-select">
+                <option value="">All roles</option>
+                @foreach (var r in allRoles)
+                { <option value="@r" selected="@(role==r)">@r</option> }
+            </select>
+        </div>
+        <button type="submit" class="adm-btn-filter"><i data-lucide="search" style="width:13px;height:13px;" aria-hidden="true"></i>Search</button>
+        @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(role))
+        { <a href="/AdminDashboard/Users" class="adm-btn-clear"><i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>Clear</a> }
+    </div>
+</form>
+
+<div class="adm-card">
+    <div class="adm-results-info">@Model.Count() user@(Model.Count() == 1 ? "" : "s") found</div>
+
+    @if (Model.Any())
+    {
+        <div style="overflow-x:auto;">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>User</th>
+                        <th>Roles</th>
+                        <th>Orders</th>
+                        <th>Email confirmed</th>
+                        <th>Assign role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model)
+                {
+                    var u = row.User;
+                    string avatarMod = row.Roles.Contains("Admin") ? "adm-avatar--purple"
+                                     : row.Roles.Contains("Producer") ? "adm-avatar--orange" : "";
+                    <tr>
+                        <td style="padding:8px 8px 8px 14px;">
+                            <div class="adm-avatar @avatarMod">@(u.Email?.Substring(0,1).ToUpper() ?? "?")</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">@u.Email</div>
+                            <div style="font-size:11px;color:var(--text-light);">@u.Id.Substring(0,8)…</div>
+                        </td>
+                        <td>
+                            @if (row.Roles.Any())
+                            {
+                                @foreach (var r in row.Roles)
+                                {
+                                    string cm = r == "Admin" ? "adm-role-chip--admin"
+                                              : r == "Producer" ? "adm-role-chip--producer"
+                                              : "adm-role-chip--default";
+                                    <span class="adm-role-chip @cm">
+                                        @r
+                                        <form asp-action="RemoveRole" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Remove @r from @u.Email?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId"   value="@u.Id" />
+                                            <input type="hidden" name="roleName" value="@r" />
+                                            <button type="submit" class="adm-role-remove" title="Remove role">×</button>
+                                        </form>
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span style="font-size:12px;color:var(--text-light);">No roles</span>
+                            }
+                        </td>
+                        <td style="font-weight:600;">@row.OrderCount</td>
+                        <td>
+                            @if (u.EmailConfirmed)
+                            { <span style="color:var(--green);font-size:13px;font-weight:700;">✓ Yes</span> }
+                            else
+                            { <span style="color:var(--text-light);font-size:13px;">Pending</span> }
+                        </td>
+                        <td>
+                            @if (allRoles.Any())
+                            {
+                                <form asp-action="AssignRole" method="post" class="adm-role-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@u.Id" />
+                                    <select name="roleName" class="adm-role-select">
+                                        @foreach (var r in allRoles)
+                                        { <option value="@r">@r</option> }
+                                    </select>
+                                    <button type="submit" class="adm-role-btn">
+                                        <i data-lucide="plus" style="width:11px;height:11px;" aria-hidden="true"></i>
+                                        Assign
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a href="/AdminDashboard/Settings" style="font-size:12px;color:var(--green);">Create roles first</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div style="padding:48px;text-align:center;color:var(--text-muted);">
+            <i data-lucide="users" style="width:40px;height:40px;display:block;margin:0 auto 10px;opacity:.3;" aria-hidden="true"></i>
+            <p style="font-size:14px;margin:0;">No users match your filters.</p>
+        </div>
+    }
+</div>
+
+@section Scripts { <script>if (window.lucide) lucide.createIcons();</script> }

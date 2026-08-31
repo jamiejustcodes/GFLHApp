@@ -1,0 +1,654 @@
+.oc-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 560px;
+    padding: 138px 24px 112px;
+    background:
+        linear-gradient(135deg, rgba(255,251,235,.92), rgba(220,252,231,.88)),
+        url("/images/products/apple.jpg") center 42% / cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.oc-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 22%, rgba(245,158,11,.18), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(22,163,74,.18), transparent 30%),
+        linear-gradient(180deg, rgba(255,251,235,.55), rgba(255,251,235,.12));
+    pointer-events: none;
+}
+
+.oc-hero__field {
+    position: absolute;
+    inset: auto 0 0;
+    height: 38%;
+    background: linear-gradient(180deg, transparent, rgba(255,251,235,.78));
+    pointer-events: none;
+}
+
+.oc-hero__inner {
+    position: relative;
+    z-index: 2;
+    width: min(760px, 100%);
+}
+
+.oc-confirm-mark {
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 18px 40px rgba(22,163,74,.28), 0 0 0 10px rgba(220,252,231,.78);
+}
+
+.oc-confirm-mark svg {
+    width: 42px;
+    height: 42px;
+    stroke-width: 3;
+}
+
+.oc-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(42px, 6vw, 74px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: 0;
+    color: var(--text);
+    margin: 18px 0 18px;
+}
+
+.oc-hero__sub {
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: clamp(16px, 1.8vw, 19px);
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+.oc-hero__float {
+    position: absolute;
+    z-index: 1;
+    color: var(--green-700);
+    opacity: .24;
+    pointer-events: none;
+    transform: translate(var(--oc-x, 0), var(--oc-y, 0));
+    transition: transform .6s ease;
+}
+
+.oc-hero__float svg {
+    width: 54px;
+    height: 54px;
+    stroke-width: 1.6;
+}
+
+.oc-hero__float--1 {
+    left: 10%;
+    top: 32%;
+}
+
+.oc-hero__float--2 {
+    right: 13%;
+    top: 24%;
+}
+
+.oc-hero__float--3 {
+    right: 22%;
+    bottom: 24%;
+}
+
+.oc-hero__wave {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    line-height: 0;
+    z-index: 2;
+}
+
+.oc-hero__wave svg {
+    width: 100%;
+    display: block;
+}
+
+.oc-page {
+    background: var(--cream);
+    padding: 0 24px 96px;
+}
+
+.oc-shell {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+}
+
+.oc-summary-strip {
+    position: relative;
+    z-index: 3;
+    margin: -48px 0 28px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.oc-summary-item {
+    padding: 24px 26px;
+    border-right: 1.5px solid var(--border);
+}
+
+.oc-summary-item:last-child {
+    border-right: 0;
+}
+
+.oc-summary-item__label,
+.oc-panel__eyebrow,
+.oc-muted {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.oc-summary-item__value {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1.18;
+    color: var(--text);
+}
+
+.oc-summary-item--total {
+    background: var(--green-100);
+}
+
+.oc-summary-item--total .oc-summary-item__value {
+    color: var(--green-800);
+}
+
+.oc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr);
+    gap: 28px;
+    align-items: start;
+    margin-bottom: 28px;
+}
+
+.oc-panel {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 30px;
+}
+
+.oc-panel__header,
+.oc-panel__title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.oc-panel__header {
+    margin-bottom: 24px;
+}
+
+.oc-panel__header--split {
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.oc-panel__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: var(--r-md);
+    background: var(--green-100);
+    color: var(--green-700);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.oc-panel__icon--warm {
+    background: var(--orange-100);
+    color: var(--orange);
+}
+
+.oc-panel__icon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.2;
+}
+
+.oc-panel__title {
+    font-family: var(--font-display);
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: 0;
+    margin: 3px 0 0;
+    color: var(--text);
+}
+
+.oc-status-card {
+    background: linear-gradient(135deg, var(--cream), #f0fdf4);
+    border: 1.5px solid var(--green-200);
+    border-radius: var(--r-md);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.oc-status-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.oc-status-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.oc-status-pill,
+.oc-small-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: var(--r-full);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green-800);
+    background: var(--green-100);
+    border: 1.5px solid var(--green-200);
+    padding: 7px 14px;
+    white-space: nowrap;
+}
+
+.oc-status-pill__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(22,163,74,.14);
+}
+
+.oc-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.oc-timeline__item {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 14px;
+    position: relative;
+}
+
+.oc-timeline__item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 43px;
+    bottom: -18px;
+    width: 2px;
+    background: var(--border);
+}
+
+.oc-timeline__marker {
+    position: relative;
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--cream-2);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--border);
+}
+
+.oc-timeline__item.is-complete .oc-timeline__marker,
+.oc-timeline__item.is-active .oc-timeline__marker {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--white);
+}
+
+.oc-timeline__item strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 17px;
+    line-height: 1.25;
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+.oc-timeline__item span:last-child {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.oc-detail-list,
+.oc-vat-breakdown {
+    margin: 0;
+}
+
+.oc-detail-list div {
+    padding: 16px 0;
+    border-top: 1.5px solid var(--border);
+}
+
+.oc-detail-list div:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.oc-detail-list dt,
+.oc-vat-breakdown dt {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.oc-detail-list dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.oc-grower-stack {
+    display: grid;
+    gap: 18px;
+}
+
+.oc-grower-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: #fffefa;
+}
+
+.oc-grower-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--green-100);
+    border-bottom: 1.5px solid var(--green-200);
+}
+
+.oc-grower-card__head h3 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 3px;
+    color: var(--green-900);
+}
+
+.oc-grower-card__head p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-800);
+}
+
+.oc-grower-card__total {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green-900);
+    white-space: nowrap;
+}
+
+.oc-items {
+    width: 100%;
+}
+
+.oc-items__row {
+    display: grid;
+    grid-template-columns: minmax(160px, 1.4fr) .45fr .75fr .75fr;
+    gap: 14px;
+    align-items: center;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+}
+
+.oc-items__row span:not(:first-child) {
+    text-align: right;
+}
+
+.oc-items__row--head {
+    background: var(--white);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.oc-items__row:not(.oc-items__row--head) span:first-child {
+    font-weight: 700;
+}
+
+.oc-vat-breakdown {
+    padding: 14px 20px 18px;
+    background: var(--white);
+}
+
+.oc-vat-breakdown div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 24px;
+    margin-top: 5px;
+}
+
+.oc-vat-breakdown dt {
+    min-width: 180px;
+    text-align: right;
+}
+
+.oc-vat-breakdown dd {
+    min-width: 92px;
+    margin: 0;
+    text-align: right;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.oc-vat-breakdown__total {
+    padding-top: 9px;
+    border-top: 1.5px solid var(--border);
+}
+
+.oc-vat-breakdown__total dt,
+.oc-vat-breakdown__total dd {
+    color: var(--green-800);
+}
+
+.oc-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: var(--r-md);
+    background: var(--yellow-100);
+    border: 1.5px solid #FDE68A;
+    color: #713F12;
+}
+
+.oc-note svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.oc-note strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.oc-note p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.oc-note--invoice {
+    margin: 0;
+    border-radius: 0;
+    border-width: 1.5px 0 0;
+    background: var(--cream);
+    color: var(--green-900);
+}
+
+.oc-note--quiet {
+    background: var(--green-100);
+    border-color: var(--green-200);
+    color: var(--green-900);
+}
+
+.oc-care-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.oc-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 34px;
+}
+
+.oc-pop {
+    animation: oc-pop .42s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes oc-pop {
+    0% {
+        transform: scale(.9);
+    }
+
+    70% {
+        transform: scale(1.07);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 920px) {
+    .oc-summary-strip,
+    .oc-grid,
+    .oc-care-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .oc-summary-item {
+        border-right: 0;
+        border-bottom: 1.5px solid var(--border);
+    }
+
+    .oc-summary-item:last-child {
+        border-bottom: 0;
+    }
+}
+
+@media (max-width: 680px) {
+    .oc-hero {
+        min-height: 500px;
+        padding: 120px 18px 96px;
+    }
+
+    .oc-page {
+        padding: 0 16px 72px;
+    }
+
+    .oc-panel {
+        padding: 22px 18px;
+    }
+
+    .oc-panel__header--split {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .oc-items__row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .oc-items__row--head {
+        display: none;
+    }
+
+    .oc-items__row span:not(:first-child) {
+        text-align: left;
+        color: var(--text-muted);
+    }
+
+    .oc-items__row span:nth-child(2)::before {
+        content: "Qty: ";
+        font-weight: 700;
+    }
+
+    .oc-items__row span:nth-child(3)::before {
+        content: "Unit price: ";
+        font-weight: 700;
+    }
+
+    .oc-items__row span:nth-child(4)::before {
+        content: "Line total: ";
+        font-weight: 700;
+    }
+
+    .oc-vat-breakdown div {
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .oc-vat-breakdown dt {
+        min-width: 0;
+        text-align: left;
+    }
+
+    .oc-vat-breakdown dd {
+        min-width: 0;
+    }
+}

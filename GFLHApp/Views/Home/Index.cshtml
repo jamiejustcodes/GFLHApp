@@ -1,0 +1,536 @@
+@model IEnumerable<GFLHApp.Models.Producers>
+
+@{
+    ViewData["Title"] = "Grown Different";
+    ViewData["FullWidth"] = true;
+}
+
+<!-- Existing content remains unchanged -->
+<!-- Example usage of the Producers model -->
+
+<!-- Scroll progress bar (position:fixed, no layout impact) -->
+<div id="scrollProgress" class="pw-scroll-progress" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════
+     HERO  (entrance animations via CSS — no reveal class needed)
+════════════════════════════════════════════ -->
+<section class="pw-hero" aria-label="Hero">
+    <span class="pw-hero__float pw-hero__float--1" aria-hidden="true"><i data-lucide="carrot" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--2" aria-hidden="true"><i data-lucide="leaf" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--3" aria-hidden="true"><i data-lucide="cherry" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--4" aria-hidden="true"><i data-lucide="sprout" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--5" aria-hidden="true"><i data-lucide="wheat" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--6" aria-hidden="true"><i data-lucide="flower-2" class="pw-icon-float"></i></span>
+
+    <div class="pw-hero__content">
+        <div class="pw-hero__badge">
+            <span class="pw-badge pw-badge--pop">
+                <i data-lucide="sparkles" class="pw-icon-sm"></i>
+                Spring Harvest Just Dropped
+            </span>
+        </div>
+
+        <h1 class="pw-hero__headline">
+            <span class="pw-hero__line-1">The freshest</span>
+            <span class="pw-hero__line-2">produce</span>
+            <span class="pw-hero__line-3">on the planet.™</span>
+        </h1>
+
+        <p class="pw-hero__sub">
+            Real farms. Real farmers. Impossibly good produce
+            delivered straight to your door before you even knew you needed it.
+        </p>
+
+        <div class="pw-hero__ctas">
+            <a class="pw-btn pw-btn--primary pw-btn--lg"
+                   asp-area="" asp-controller="Products" asp-action="Index">
+                Shop the Harvest
+            </a>
+            <a class="pw-btn pw-btn--ghost pw-btn--lg"
+                   asp-area="" asp-controller="Producers" asp-action="Index">
+                Meet Our Producers →
+            </a>
+        </div>
+
+        <div class="pw-hero__trust" aria-label="Key facts">
+            <span class="pw-hero__trust-item">
+                <i data-lucide="globe" class="pw-icon-sm pw-icon-green"></i>
+                Local UK Farms
+            </span>
+            <span class="pw-hero__trust-dot" aria-hidden="true">·</span>
+            <span class="pw-hero__trust-item">
+                <i data-lucide="package" class="pw-icon-sm pw-icon-green"></i>
+                Next-day delivery
+            </span>
+            <span class="pw-hero__trust-dot" aria-hidden="true">·</span>
+            <span class="pw-hero__trust-item">
+                <i data-lucide="recycle" class="pw-icon-sm pw-icon-green"></i>
+                Zero plastic
+            </span>
+        </div>
+    </div>
+
+    <div class="pw-hero__visual" aria-hidden="true">
+        <div class="pw-hero__box-art">
+            <div class="pw-box-sticker pw-box-sticker--1">
+                Seasonal <i data-lucide="star" class="pw-icon-sticker-star"></i>
+            </div>
+            <div class="pw-box-inner">
+                <div class="pw-box-produce">
+                    <i data-lucide="carrot" class="pw-icon-produce pw-icon-orange"></i>
+                    <i data-lucide="cherry" class="pw-icon-produce pw-icon-red"></i>
+                    <i data-lucide="sprout" class="pw-icon-produce pw-icon-green"></i>
+                </div>
+                <div class="pw-box-produce">
+                    <i data-lucide="wheat" class="pw-icon-produce pw-icon-yellow"></i>
+                    <i data-lucide="leaf" class="pw-icon-produce pw-icon-green"></i>
+                    <i data-lucide="flower-2" class="pw-icon-produce pw-icon-purple"></i>
+                </div>
+                <div class="pw-box-produce">
+                    <i data-lucide="sprout" class="pw-icon-produce pw-icon-green"></i>
+                    <i data-lucide="leaf" class="pw-icon-produce pw-icon-orange"></i>
+                    <i data-lucide="carrot" class="pw-icon-produce pw-icon-yellow"></i>
+                </div>
+            </div>
+            <div class="pw-box-label">
+                <span>Spring Produce</span>
+                <span>Fresh</span>
+            </div>
+            <div class="pw-box-sticker pw-box-sticker--2">Unmissable Deals</div>
+        </div>
+    </div>
+
+    <!-- Scroll down cue — bounces after hero loads -->
+    <a class="pw-hero__scroll-cue" href="#whats-fresh" aria-label="Scroll to fresh produce">
+        <i data-lucide="chevron-down" class="pw-icon-scroll-cue"></i>
+    </a>
+
+    <div class="pw-hero__wave" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#16A34A" />
+        </svg>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════
+     TICKER
+════════════════════════════════════════════ -->
+<div class="pw-ticker" aria-hidden="true">
+    <div class="pw-ticker__track">
+        <span>Farm Fresh</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Seasonal Picks</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Small Batch</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Local Growers</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Zero Plastic</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Next-Day Delivery</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Grown with Love</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Ugly Veg Welcome</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Farm Fresh</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Seasonal Picks</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Small Batch</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Local Growers</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Zero Plastic</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Next-Day Delivery</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Grown with Love</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Ugly Veg Welcome</span><i data-lucide="star" class="pw-ticker__dot"></i>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     WHAT'S FRESH
+════════════════════════════════════════════ -->
+<section id="whats-fresh" class="pw-section pw-section--cream" aria-labelledby="fresh-heading">
+    <div class="pw-container">
+
+        <!-- blur-clear: section title sharpens in as it enters -->
+        <div class="pw-section__header reveal reveal--blur">
+            <span class="pw-section__eyebrow">
+                <i data-lucide="sprout" class="pw-icon-sm"></i>
+                Right now
+            </span>
+            <h2 class="pw-section__title" id="fresh-heading">
+                What's growing<br>
+                <em class="pw-text--green">this season</em>
+            </h2>
+            <p class="pw-section__subtitle">
+                Picked at peak ripeness. No sorry-it's-out-of-season nonsense.
+            </p>
+        </div>
+
+        <!-- Cards spring-pop in staggered -->
+        <div class="pw-grid pw-grid--3">
+
+            <article class="pw-card pw-card--product reveal reveal--pop" data-delay="0">
+                <div class="pw-card__badge pw-badge pw-badge--green">In Season</div>
+                <div class="pw-card__img-wrap" aria-hidden="true">
+                    <img src="~/images/home/homecarrots.jpg" alt="" class="pw-card__photo" loading="lazy">
+                </div>
+                <div class="pw-card__body">
+                    <p class="pw-card__farm">Willowcreek Farm</p>
+                    <h3 class="pw-card__name">Heritage Carrots</h3>
+                    <p class="pw-card__desc">Purple, yellow, orange. Not your average sad bagged carrots from a sad supermarket shelf.</p>
+                    <div class="pw-card__footer">
+                        <span class="pw-card__price">£2.50</span>
+                        <a class="pw-btn pw-btn--sm pw-btn--primary"
+                           asp-area="" asp-controller="Products" asp-action="Index"
+                           aria-label="Add Heritage Carrots to basket">Goto Shop</a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="pw-card pw-card--product pw-card--featured reveal reveal--pop" data-delay="150">
+                <div class="pw-card__badge pw-badge pw-badge--orange">
+                    <i data-lucide="zap" class="pw-icon-sm"></i>
+                    Low Stock
+                </div>
+                <div class="pw-card__img-wrap" aria-hidden="true">
+                    <img src="~/images/home/homestrawberries.jpg" alt="" class="pw-card__photo" loading="lazy">
+                </div>
+                <div class="pw-card__body">
+                    <p class="pw-card__farm">Sunnybrook Farm</p>
+                    <h3 class="pw-card__name">Strawberries</h3>
+                    <p class="pw-card__desc">Ugly. Delicious. The strawberries that would start a movement if tomatoes could start movements.</p>
+                    <div class="pw-card__footer">
+                        <span class="pw-card__price">£3.80</span>
+                        <a class="pw-btn pw-btn--sm pw-btn--primary"
+                           asp-area="" asp-controller="Products" asp-action="Index"
+                           aria-label="Add Heirloom Tomatoes to basket">Goto shop</a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="pw-card pw-card--product reveal reveal--pop" data-delay="300">
+                <div class="pw-card__badge pw-badge pw-badge--purple">
+                    <i data-lucide="sparkles" class="pw-icon-sm"></i>
+                    New Drop
+                </div>
+                <div class="pw-card__img-wrap" aria-hidden="true">
+                    <img src="~/images/home/homeveg.jpg" alt="" class="pw-card__photo" loading="lazy">
+                </div>
+                <div class="pw-card__body">
+                    <p class="pw-card__farm">Oakridge Harvest Hub</p>
+                    <h3 class="pw-card__name">Spring Greens Mix</h3>
+                    <p class="pw-card__desc">Spinach, kale, chard. Tastes like a forest in a really, really good way.</p>
+                    <div class="pw-card__footer">
+                        <span class="pw-card__price">£2.20</span>
+                        <a class="pw-btn pw-btn--sm pw-btn--primary"
+                           asp-area="" asp-controller="Products" asp-action="Index"
+                           aria-label="Add Spring Greens Mix to basket">Goto shop</a>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="pw-section__cta reveal" data-delay="200">
+            <a class="pw-btn pw-btn--outline pw-btn--lg"
+                   asp-area="" asp-controller="Products" asp-action="Index">
+                See everything growing →
+            </a>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════
+     BOX SPOTLIGHT  (flashy animated feature)
+════════════════════════════════════════════ -->
+<section class="pw-spotlight" aria-labelledby="spotlight-heading">
+    <span class="pw-spotlight__deco pw-spotlight__deco--1" aria-hidden="true"><i data-lucide="star" class="pw-icon-float"></i></span>
+    <span class="pw-spotlight__deco pw-spotlight__deco--2" aria-hidden="true"><i data-lucide="sprout" class="pw-icon-float"></i></span>
+
+    <div class="pw-container">
+        <div class="pw-spotlight__inner">
+
+            <div class="pw-spotlight__img-col reveal reveal--left">
+                <div class="pw-spotlight__img-frame">
+                    <div class="pw-spotlight__sticker pw-spotlight__sticker--tl">
+                        <i data-lucide="sparkles" class="pw-icon-sm"></i> Just Packed
+                    </div>
+                    <div class="pw-spotlight__img-inner">
+                        <img src="~/images/home/produceBox.jpg"
+                             alt="A beautiful seasonal produce box overflowing with fresh veg"
+                             class="pw-spotlight__photo">
+                    </div>
+                    <div class="pw-spotlight__sticker pw-spotlight__sticker--br">
+                        Don't miss this bargain!
+                    </div>
+                </div>
+            </div>
+
+            <div class="pw-spotlight__text-col reveal reveal--right" data-delay="120">
+                <span class="pw-section__eyebrow">
+                    <i data-lucide="package" class="pw-icon-sm"></i>
+                    Our special deal
+                </span>
+                <h2 class="pw-section__title" id="spotlight-heading">
+                    The Health Bundle.<br>
+                    <em class="pw-text--green">It's a healthy vibe.</em>
+                </h2>
+                <p class="pw-spotlight__desc">
+                   Have a carrot, apple and broccoli in your basket
+                    for 10% off on your orders subtotal.
+                </p>
+                <ul class="pw-spotlight__list">
+                    <li><i data-lucide="check-circle" class="pw-icon-sm pw-icon-green"></i> Seasonal items</li>
+                    <li><i data-lucide="check-circle" class="pw-icon-sm pw-icon-green"></i> Sourced from various local farms</li>
+                    <li><i data-lucide="check-circle" class="pw-icon-sm pw-icon-green"></i> Zero plastic, 100% recyclable</li>
+                </ul>
+                <a class="pw-btn pw-btn--primary pw-btn--lg"
+                   asp-area="" asp-controller="Products" asp-action="Index">
+                    Grab This Deal →
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS  (animated gradient background)
+════════════════════════════════════════════ -->
+<section class="pw-section pw-section--green" aria-labelledby="how-heading">
+    <div class="pw-container">
+
+        <div class="pw-section__header pw-section__header--light reveal reveal--blur">
+            <span class="pw-section__eyebrow pw-eyebrow--light">
+                <i data-lucide="package" class="pw-icon-sm"></i>
+                The process
+            </span>
+            <h2 class="pw-section__title" id="how-heading">
+                Getting your produce is<br>embarrassingly easy.
+            </h2>
+        </div>
+
+        <!-- Steps spring-pop in sequence -->
+        <div class="pw-steps">
+            <div class="pw-step reveal reveal--pop" data-delay="0">
+                <span class="pw-step__number" aria-hidden="true">01</span>
+                <span class="pw-step__icon" aria-hidden="true">
+                    <i data-lucide="shopping-cart" class="pw-icon-step"></i>
+                </span>
+                <h3 class="pw-step__title">Pick your produce</h3>
+                <p class="pw-step__desc">Browse what's in season. Add what looks good. Trust your gut — and your gut will thank you.</p>
+            </div>
+            <div class="pw-step__arrow reveal" data-delay="100" aria-hidden="true">→</div>
+            <div class="pw-step reveal reveal--pop" data-delay="200">
+                <span class="pw-step__number" aria-hidden="true">02</span>
+                <span class="pw-step__icon" aria-hidden="true">
+                    <i data-lucide="user-round" class="pw-icon-step"></i>
+                </span>
+                <h3 class="pw-step__title">Farmers get to work</h3>
+                <p class="pw-step__desc">Your order goes straight to the farm. Harvested fresh. Packed by real humans who genuinely care.</p>
+            </div>
+            <div class="pw-step__arrow reveal" data-delay="300" aria-hidden="true">→</div>
+            <div class="pw-step reveal reveal--pop" data-delay="400">
+                <span class="pw-step__number" aria-hidden="true">03</span>
+                <span class="pw-step__icon" aria-hidden="true">
+                    <i data-lucide="truck" class="pw-icon-step"></i>
+                </span>
+                <h3 class="pw-step__title">It arrives at your door</h3>
+                <p class="pw-step__desc">Next day. In a package that doesn't look embarrassing in your hallway. You're very welcome.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="pw-section__wave-bottom" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C240,0 480,80 720,40 C960,0 1200,80 1440,40 L1440,80 L0,80 Z" fill="#FFFBEB" />
+        </svg>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════
+     MEET THE GROWERS
+════════════════════════════════════════════ -->
+<section class="pw-section pw-section--cream" aria-labelledby="growers-heading">
+    <div class="pw-container">
+
+        <div class="pw-section__header reveal reveal--blur">
+            <span class="pw-section__eyebrow">
+                <i data-lucide="users" class="pw-icon-sm"></i>
+                The people
+            </span>
+            <h2 class="pw-section__title" id="growers-heading">
+                Not a supermarket.<br>
+                <em class="pw-text--green">Not even close.</em>
+            </h2>
+            <p class="pw-section__subtitle">
+                Every product is traceable to a real farm with real humans behind it.
+            </p>
+        </div>
+
+        <!-- Grower cards slide in from opposite sides -->
+        <div class="pw-grid pw-grid--2">
+
+            <article class="pw-card pw-card--grower reveal reveal--left">
+                <div class="pw-card__grower-img" aria-hidden="true">
+                    <img src="~/images/home/olderLady.jpg" alt="" class="pw-grower__photo" loading="lazy">
+                </div>
+                <div class="pw-card__body">
+                    <h3 class="pw-card__name">Willowcreek Farm</h3>
+                    <p class="pw-card__desc">"We've been growing root vegetables for three generations. Every single carrot is pulled by hand." — Martha, Head Grower</p>
+                </div>
+            </article>
+
+            <article class="pw-card pw-card--grower pw-card--grower-alt reveal reveal--right" data-delay="100">
+                <div class="pw-card__grower-img" aria-hidden="true">
+                    <img src="~/images/home/manwalking.jpg" alt="" class="pw-grower__photo" loading="lazy">
+                </div>
+                <div class="pw-card__body">
+                    <h3 class="pw-card__name">Sunnybrook Farm</h3>
+                    <p class="pw-card__desc">"The tomatoes people call ugly are the ones with the most flavour. Full stop. No argument." — Tom, Founder</p>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="pw-section__cta reveal" data-delay="200">
+            <a class="pw-btn pw-btn--outline pw-btn--lg"
+                   asp-area="" asp-controller="Producers" asp-action="Index">
+                Meet all our growers →
+            </a>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════
+     STATS / TRUST BAR
+════════════════════════════════════════════ -->
+<div class="pw-trust-bar" role="region" aria-label="Key statistics">
+    <div class="pw-trust-bar__inner">
+        <div class="pw-stat reveal" data-delay="0">
+            <span class="pw-stat__value" data-target="42" data-suffix="+">42+</span>
+            <span class="pw-stat__label">Local Farms</span>
+        </div>
+        <div class="pw-stat__divider" aria-hidden="true"></div>
+        <div class="pw-stat reveal" data-delay="100">
+            <span class="pw-stat__value" data-target="3800" data-suffix="+">3,800+</span>
+            <span class="pw-stat__label">Happy Customers</span>
+        </div>
+        <div class="pw-stat__divider" aria-hidden="true"></div>
+        <div class="pw-stat reveal" data-delay="200">
+            <span class="pw-stat__value" data-target="100" data-suffix="%">100%</span>
+            <span class="pw-stat__label">Seasonal Produce</span>
+        </div>
+        <div class="pw-stat__divider" aria-hidden="true"></div>
+        <div class="pw-stat reveal" data-delay="300">
+            <span class="pw-stat__value" data-target="0" data-suffix="">0</span>
+            <span class="pw-stat__label">Pieces of Plastic</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     BIG CTA  (animated drifting blobs)
+════════════════════════════════════════════ -->
+<section class="pw-section pw-section--cta" aria-labelledby="cta-heading">
+    <div class="pw-cta-blob pw-cta-blob--1" aria-hidden="true"></div>
+    <div class="pw-cta-blob pw-cta-blob--2" aria-hidden="true"></div>
+    <div class="pw-cta-blob pw-cta-blob--3" aria-hidden="true"></div>
+
+    <div class="pw-container--narrow">
+        <span class="pw-cta-section__eyebrow reveal">
+            <i data-lucide="party-popper" class="pw-icon-sm"></i>
+            Don't wait
+        </span>
+        <h2 class="pw-cta-section__title reveal reveal--blur" id="cta-heading" data-delay="100">
+            Your first taste should<br>be unforgettable.
+        </h2>
+        <p class="pw-cta-section__sub reveal" data-delay="200">
+            Join thousands of people who've ditched the supermarket and haven't looked back once.
+        </p>
+        <div class="pw-cta-section__actions reveal reveal--pop" data-delay="320">
+            <a class="pw-btn pw-btn--primary pw-btn--xl"
+                   asp-area="" asp-controller="Products" asp-action="Index">
+                Start Shopping
+            </a>
+            <a class="pw-btn pw-btn--ghost-dark pw-btn--xl"
+                   asp-area="Identity" asp-page="/Account/Register">
+                Create Account
+            </a>
+        </div>
+        <p class="pw-cta-section__small reveal" data-delay="440">
+            No subscription. No commitment. Just great food.
+        </p>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    var frame = document.querySelector('.pw-spotlight__img-frame');
+    if (!frame) return;
+
+    var colors = ['#16A34A','#F59E0B','#F97316','#EC4899','#8B5CF6','#4ADE80','#FEF08A','#FB923C','#A78BFA'];
+    var lastSpawn = 0;
+
+    function spawnParticle(cx, cy) {
+        var el = document.createElement('div');
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        var size  = 9 + Math.random() * 13;
+        var angle = Math.random() * Math.PI * 2;
+        var speed = 100 + Math.random() * 220;
+        var dx    = Math.cos(angle) * speed;
+        var dy    = Math.sin(angle) * speed - 80;
+        var dur   = 750 + Math.random() * 550;
+
+        el.style.cssText =
+            'position:fixed;' +
+            'left:' + (cx - size / 2) + 'px;' +
+            'top:'  + (cy - size / 2) + 'px;' +
+            'width:' + size + 'px;height:' + size + 'px;' +
+            'border-radius:50%;background:' + color + ';' +
+            'pointer-events:none;z-index:9999;';
+
+        document.body.appendChild(el);
+
+        el.animate(
+            [
+                { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(0.05)', opacity: 0 }
+            ],
+            { duration: dur, easing: 'ease-out', fill: 'forwards' }
+        ).onfinish = function() { el.remove(); };
+    }
+
+    function burst(cx, cy, count) {
+        for (var i = 0; i < count; i++) {
+            (function(i) {
+                setTimeout(function() {
+                    spawnParticle(
+                        cx + (Math.random() - 0.5) * 100,
+                        cy + (Math.random() - 0.5) * 100
+                    );
+                }, i * 20);
+            })(i);
+        }
+    }
+
+    frame.addEventListener('mouseenter', function() {
+        var r = frame.getBoundingClientRect();
+        burst(r.left + r.width / 2, r.top + r.height / 2, 26);
+    });
+
+    frame.addEventListener('mousemove', function(e) {
+        var now = Date.now();
+        if (now - lastSpawn < 75) return;
+        lastSpawn = now;
+        for (var i = 0; i < 3; i++)
+            spawnParticle(
+                e.clientX + (Math.random() - 0.5) * 20,
+                e.clientY + (Math.random() - 0.5) * 20
+            );
+    });
+})();
+</script>
+}

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Greenfield</title>
+    <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GFLHApp.styles.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+    <style>
+        .pw-basket-badge {
+            background: var(--orange, #F97316);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            margin-left: 3px;
+            line-height: 1;
+            transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+        }
+        .pw-basket-badge--pop { transform: scale(1.55); }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="pw-nav" id="mainNav" aria-label="Main navigation">
+            <div class="pw-nav__inner">
+                <a class="pw-nav__logo" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Greenfield home">
+                    <span class="pw-nav__logo-mark" aria-hidden="true">
+                        <i data-lucide="sprout" class="pw-icon-nav-logo"></i>
+                    </span>
+                    <span class="pw-nav__logo-text">Greenfield</span>
+                </a>
+
+                <div class="pw-nav__drawer" id="navDrawer" aria-hidden="true">
+                    <ul class="pw-nav__links" role="list">
+                        <li><a asp-area="" asp-controller="Products" asp-action="Index">Shop</a></li>
+                        <li><a asp-area="" asp-controller="Producers" asp-action="Index">Growers</a></li>
+                        @if (User.IsInRole("Standard") || User.IsInRole("Admin") || User.IsInRole("Developer"))
+                        {
+                            <li><a asp-area="" asp-controller="Orders" asp-action="Index">Orders</a></li>
+                        }
+                        @if (User.IsInRole("Admin") || User.IsInRole("Developer"))
+                        {
+                            <li><a asp-area="" asp-controller="AdminDashboard" asp-action="Index">Admin Dashboard</a></li>
+                        }
+                        @if (User.IsInRole("Producer") || User.IsInRole("Developer"))
+                        {
+                            <li><a asp-area="" asp-controller="ProducerDashboard" asp-action="Index">Producer Dashboard</a></li>
+                        }
+                    </ul>
+                    <div class="pw-nav__actions">
+                        <div class="pw-accessibility" id="accessibilityMenu">
+                            <button class="pw-accessibility__toggle" type="button"
+                                    id="accessibilityToggle"
+                                    aria-label="Accessibility options"
+                                    aria-expanded="false"
+                                    aria-controls="accessibilityDropdown">
+                                <span class="pw-accessibility__hamburger" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                                <span>Accessibility</span>
+                            </button>
+                            <div class="pw-accessibility__dropdown" id="accessibilityDropdown" role="menu" aria-labelledby="accessibilityToggle" hidden>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="dark-mode" role="menuitem">
+                                    <i data-lucide="moon" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span data-accessibility-label="dark-mode">Dark mode</span>
+                                </button>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="increase-font" role="menuitem">
+                                    <i data-lucide="zoom-in" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span>Increase text</span>
+                                </button>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="decrease-font" role="menuitem">
+                                    <i data-lucide="zoom-out" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span>Decrease text</span>
+                                </button>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="reset-font" role="menuitem">
+                                    <i data-lucide="rotate-ccw" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span>Reset text size</span>
+                                </button>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="high-contrast" role="menuitem">
+                                    <i data-lucide="contrast" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span data-accessibility-label="high-contrast">High contrast</span>
+                                </button>
+                                <div class="pw-accessibility__divider" role="separator"></div>
+                                <button type="button" class="pw-accessibility__item" data-accessibility-action="speak" role="menuitem">
+                                    <i data-lucide="volume-2" class="pw-accessibility__icon" aria-hidden="true"></i>
+                                    <span data-accessibility-label="speak">Read page aloud</span>
+                                </button>
+                            </div>
+                        </div>
+                        <partial name="_LoginPartial" />
+                        @if (User.IsInRole("Standard") || User.IsInRole("Developer"))
+                        {
+                            <a class="pw-nav__basket" asp-area="" asp-controller="Baskets" asp-action="Index" aria-label="View basket">
+                                <i data-lucide="shopping-basket" class="pw-icon-nav-basket" aria-hidden="true"></i>
+                                <span>Basket</span>
+                                <span class="pw-basket-badge" id="navBasketCount" aria-label="items in basket" hidden>0</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <button class="pw-nav__hamburger" id="navToggle"
+                        aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+        <div class="pw-nav__backdrop" id="navBackdrop" aria-hidden="true"></div>
+    </header>
+
+    @if (ViewData["FullWidth"] is bool fw && fw)
+    {
+        <main role="main" id="main-content">
+            @RenderBody()
+        </main>
+    }
+    else
+    {
+        <div class="container pw-page-container">
+            <main role="main" id="main-content" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    }
+
+    <footer class="pw-footer" role="contentinfo">
+        <div class="pw-footer__inner">
+            <div class="pw-footer__brand">
+                <span class="pw-footer__logo">
+                    <i data-lucide="sprout" class="pw-icon-footer-logo" aria-hidden="true"></i>
+                    Greenfield
+                </span>
+                <p>From small farms to your table.<br>Grown with care. Delivered with love.</p>
+            </div>
+            <div class="pw-footer__links">
+                <h4>Shop</h4>
+                <ul role="list">
+                    <li><a asp-area="" asp-controller="Products" asp-action="Index">All Products</a></li>
+                    <li><a asp-area="" asp-controller="Baskets" asp-action="Index">My Basket</a></li>
+                    <li><a asp-area="" asp-controller="Orders" asp-action="Index">My Orders</a></li>
+                </ul>
+            </div>
+            <div class="pw-footer__links">
+                <h4>Growers</h4>
+                <ul role="list">
+                    <li><a asp-area="" asp-controller="Producers" asp-action="Index">Meet the Farmers</a></li>
+                    @if (User.IsInRole("Producer") || User.IsInRole("Developer"))
+                    {
+                        <li><a asp-area="" asp-controller="ProducerDashboard" asp-action="Index">Producer Dashboard</a></li>
+                    }
+                </ul>
+            </div>
+            <div class="pw-footer__links">
+                <h4>Company</h4>
+                <ul role="list">
+                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                    <li><a asp-area="Identity" asp-page="/Account/Register">Sign Up</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="pw-footer__bottom">
+            &copy; 2026 Greenfield &mdash; Grown Different&trade;
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        lucide.createIcons();
+        document.documentElement.classList.add('js-loaded');
+    </script>
+    <script src="https://unpkg.com/scrollreveal@4/dist/scrollreveal.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/accessibility.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false) 
+    <script>
+        (function () {
+            window.updateBasketBadge = function (count) {
+                var badge = document.getElementById('navBasketCount');
+                if (!badge) return;
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.hidden = count < 1;
+                badge.classList.remove('pw-basket-badge--pop');
+                void badge.offsetWidth;
+                badge.classList.add('pw-basket-badge--pop');
+                setTimeout(function () { badge.classList.remove('pw-basket-badge--pop'); }, 380);
+            };
+            fetch('/BasketProducts/GetCount')
+                .then(function (r) { return r.json(); })
+                .then(function (d) { window.updateBasketBadge(d.count); })
+                .catch(function () {});
+        })();
+    </script>
+
+</body>
+</html>

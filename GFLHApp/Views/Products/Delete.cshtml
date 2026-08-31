@@ -1,0 +1,583 @@
+@model GFLHApp.Models.Products
+@{
+    ViewData["Title"] = "Delete — " + Model.ItemName;
+    ViewData["FullWidth"] = true;
+
+    string CategoryIcon(string cat) => (cat ?? "").ToLower() switch {
+        var c when c.Contains("veg")   => "carrot",
+        var c when c.Contains("fruit") => "cherry",
+        var c when c.Contains("dairy") => "milk",
+        var c when c.Contains("meat")  => "beef",
+        var c when c.Contains("bread") || c.Contains("bak") => "wheat",
+        var c when c.Contains("drink") => "cup-soda",
+        var c when c.Contains("egg")   => "egg",
+        var c when c.Contains("herb")  => "flower-2",
+        var c when c.Contains("honey") => "droplets",
+        _                              => "package"
+    };
+
+    var hasImage   = !string.IsNullOrWhiteSpace(Model.ImagePath);
+    var inStock    = Model.Available && Model.QuantityInStock > 0;
+    var allergens  = string.IsNullOrWhiteSpace(Model.Allergens)
+                        ? null
+                        : Model.Allergens.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+
+<style>
+/* ── Page shell ────────────────────────────────────────── */
+.pw-del-page {
+    min-height: 100vh;
+    background: var(--cream);
+}
+
+/* ── Header — warm danger tone ─────────────────────────── */
+.pw-del-header {
+    background: linear-gradient(160deg, #fff1f2 0%, #ffe4e6 100%);
+    border-bottom: 1px solid #fecdd3;
+    padding: 80px 0 28px;
+}
+.pw-del-header__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.pw-del-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    list-style: none; margin: 0 0 16px; padding: 0;
+    font-size: 13px; font-weight: 500; flex-wrap: wrap;
+}
+.pw-del-breadcrumb li { display: flex; align-items: center; gap: 6px; }
+.pw-del-breadcrumb li + li::before { content: '/'; color: var(--text-muted); opacity: .5; }
+.pw-del-breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color .15s; }
+.pw-del-breadcrumb a:hover { color: #DC2626; }
+.pw-del-breadcrumb [aria-current] { color: var(--text); font-weight: 600; }
+
+.pw-del-header__title {
+    display: flex; align-items: center; gap: 14px;
+}
+.pw-del-header__icon {
+    width: 44px; height: 44px;
+    background: #fee2e2;
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    color: #DC2626;
+    flex-shrink: 0;
+}
+.pw-del-header__title h1 {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 700; color: var(--text);
+    margin: 0; line-height: 1.2;
+}
+.pw-del-header__title p {
+    font-size: 13px; color: var(--text-muted); margin: 2px 0 0;
+}
+
+/* ── Body ───────────────────────────────────────────────── */
+.pw-del-body {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex; flex-direction: column; gap: 24px;
+}
+
+/* ── Product summary card ───────────────────────────────── */
+.pw-del-summary {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+.pw-del-summary__hero {
+    background: linear-gradient(135deg, var(--green-700) 0%, var(--green) 50%, #22c55e 100%);
+    padding: 28px 28px 24px;
+    display: flex; align-items: center; gap: 18px;
+    position: relative; overflow: hidden;
+}
+.pw-del-summary__hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(245,158,11,.15) 0%, transparent 60%);
+    pointer-events: none;
+}
+.pw-del-summary__img {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,.3);
+    position: relative; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+}
+.pw-del-summary__img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.pw-del-summary__img i { width: 28px; height: 28px; color: rgba(255,255,255,.9); }
+.pw-del-summary__info { position: relative; z-index: 1; min-width: 0; }
+.pw-del-summary__name {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin: 0 0 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pw-del-summary__meta {
+    font-size: 13px; color: rgba(255,255,255,.7);
+    display: flex; align-items: center; gap: 6px;
+}
+.pw-del-summary__pills {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; position: relative; z-index: 1;
+}
+.pw-del-summary__pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: var(--r-full);
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    color: rgba(255,255,255,.9);
+}
+.pw-del-summary__pill--red {
+    background: rgba(220,38,38,.25);
+    border-color: rgba(220,38,38,.4);
+    color: #fca5a5;
+}
+
+/* Data rows */
+.pw-del-summary__body { padding: 0; }
+.pw-del-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+}
+.pw-del-row:last-child { border-bottom: none; }
+.pw-del-row__icon {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+}
+.pw-del-row__icon--green  { background: var(--green-100); color: var(--green); }
+.pw-del-row__icon--yellow { background: var(--yellow-100); color: #92400E; }
+.pw-del-row__icon--orange { background: var(--orange-100); color: var(--orange); }
+.pw-del-row__icon--purple { background: var(--purple-100); color: #5B21B6; }
+.pw-del-row__icon--muted  { background: var(--cream-2); color: var(--text-muted); }
+.pw-del-row__icon--red    { background: #fee2e2; color: #DC2626; }
+.pw-del-row__content { flex: 1; min-width: 0; }
+.pw-del-row__label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--text-muted); display: block; margin-bottom: 3px;
+}
+.pw-del-row__value {
+    font-size: 14px; font-weight: 500; color: var(--text);
+    line-height: 1.55; word-break: break-word;
+}
+.pw-del-row__value--muted { color: var(--text-muted); font-style: italic; }
+.pw-del-row__value a { color: var(--green); text-decoration: none; }
+.pw-del-row__value a:hover { text-decoration: underline; }
+
+/* Allergen chips (read-only) */
+.pw-del-allergen-list {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px;
+}
+.pw-del-allergen-chip {
+    padding: 3px 10px;
+    border-radius: var(--r-full);
+    border: 1.5px solid #FED7AA;
+    font-size: 11.5px; font-weight: 600;
+    color: #9A3412;
+    background: #FFF7ED;
+}
+
+/* ── Impact warning ────────────────────────────────────── */
+.pw-del-impact {
+    background: #FFF7ED;
+    border: 1.5px solid #FED7AA;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+}
+.pw-del-impact__header {
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #FED7AA;
+    background: #FFEDD5;
+}
+.pw-del-impact__header h2 {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 700; color: #9A3412;
+    margin: 0;
+}
+.pw-del-impact__body {
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.pw-del-impact__item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13.5px; font-weight: 500; color: #7C2D12;
+}
+.pw-del-impact__item-dot {
+    width: 7px; height: 7px; flex-shrink: 0;
+    background: #F97316; border-radius: 50%;
+}
+
+/* ── Danger confirm ────────────────────────────────────── */
+.pw-del-confirm {
+    background: #fff;
+    border: 1.5px solid #FECACA;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+}
+.pw-del-confirm__header {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 12px;
+}
+.pw-del-confirm__header h2 {
+    font-family: var(--font-display);
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin: 0;
+}
+.pw-del-confirm__header p {
+    font-size: 12px; color: rgba(255,255,255,.65); margin: 2px 0 0;
+}
+.pw-del-confirm__icon-box {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: rgba(255,255,255,.12);
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+}
+.pw-del-confirm__body { padding: 24px; }
+
+.pw-del-checkbox-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    border-radius: var(--r-md);
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+.pw-del-checkbox-row input[type="checkbox"] {
+    width: 18px; height: 18px; flex-shrink: 0;
+    accent-color: #DC2626; cursor: pointer; margin-top: 2px;
+}
+.pw-del-checkbox-row__text {
+    font-size: 13.5px; color: #991B1B; font-weight: 500; line-height: 1.5;
+}
+.pw-del-checkbox-row__text strong { font-weight: 700; }
+
+.pw-del-actions {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.pw-btn-cancel {
+    height: 42px; padding: 0 20px;
+    background: transparent; color: var(--text-muted);
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    text-decoration: none;
+    transition: border-color .15s, color .15s;
+}
+.pw-btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+
+.pw-btn-delete {
+    height: 42px; padding: 0 24px;
+    background: #DC2626; color: #fff;
+    border: none; border-radius: var(--r-sm);
+    font-family: var(--font-body); font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .15s, box-shadow .15s, transform .1s;
+    box-shadow: 0 2px 8px rgba(220,38,38,.3);
+    opacity: .45;
+    pointer-events: none;
+}
+.pw-btn-delete.is-ready { opacity: 1; pointer-events: auto; }
+.pw-btn-delete.is-ready:hover { background: #b91c1c; box-shadow: 0 4px 14px rgba(185,28,28,.4); transform: translateY(-1px); }
+.pw-btn-delete.is-ready:active { transform: translateY(0); }
+</style>
+
+<div class="pw-del-page">
+
+    <!-- ── Header ──────────────────────────────────────── -->
+    <div class="pw-del-header">
+        <div class="pw-del-header__inner">
+            <nav aria-label="Breadcrumb">
+                <ol class="pw-del-breadcrumb">
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Products" asp-action="Index">Shop</a></li>
+                    <li><a asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductsId">@Model.ItemName</a></li>
+                    <li><span aria-current="page">Delete</span></li>
+                </ol>
+            </nav>
+            <div class="pw-del-header__title">
+                <div class="pw-del-header__icon" aria-hidden="true">
+                    <i data-lucide="trash-2" style="width:20px;height:20px;stroke-width:2"></i>
+                </div>
+                <div>
+                    <h1>Delete product</h1>
+                    <p>This action is permanent and cannot be undone</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pw-del-body">
+
+        <!-- ── Product summary card ────────────────────── -->
+        <section aria-label="Product details">
+            <div class="pw-del-summary">
+                <div class="pw-del-summary__hero">
+                    <div class="pw-del-summary__img" aria-hidden="true">
+                        @if (hasImage)
+                        {
+                            <img src="@Model.ImagePath" alt="@Model.ItemName" />
+                        }
+                        else
+                        {
+                            <i data-lucide="@CategoryIcon(Model.Category)" style="width:28px;height:28px;stroke-width:1.75;color:rgba(255,255,255,.9)"></i>
+                        }
+                    </div>
+                    <div class="pw-del-summary__info">
+                        <p class="pw-del-summary__name">@Model.ItemName</p>
+                        <p class="pw-del-summary__meta">
+                            <i data-lucide="tag" style="width:13px;height:13px;"></i>
+                            @Model.Category &nbsp;·&nbsp; £@Model.ItemPrice.ToString("0.00")
+                        </p>
+                        <div class="pw-del-summary__pills">
+                            @if (inStock)
+                            {
+                                <span class="pw-del-summary__pill">
+                                    <i data-lucide="check-circle" style="width:11px;height:11px;"></i>
+                                    In stock (@Model.QuantityInStock left)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="pw-del-summary__pill pw-del-summary__pill--red">
+                                    <i data-lucide="x-circle" style="width:11px;height:11px;"></i>
+                                    @(Model.QuantityInStock == 0 ? "Out of stock" : "Unlisted")
+                                </span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Model.Allergens))
+                            {
+                                <span class="pw-del-summary__pill">
+                                    <i data-lucide="alert-triangle" style="width:11px;height:11px;"></i>
+                                    Contains allergens
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pw-del-summary__body">
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--green">
+                            <i data-lucide="package" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Product name</span>
+                            <span class="pw-del-row__value">@Model.ItemName</span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--green">
+                            <i data-lucide="tag" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Category</span>
+                            <span class="pw-del-row__value">@Model.Category</span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--yellow">
+                            <i data-lucide="pound-sterling" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Price</span>
+                            <span class="pw-del-row__value">£@Model.ItemPrice.ToString("0.00") per unit</span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon @(inStock ? "pw-del-row__icon--green" : "pw-del-row__icon--red")">
+                            <i data-lucide="warehouse" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Stock &amp; availability</span>
+                            <span class="pw-del-row__value">
+                                @Model.QuantityInStock unit@(Model.QuantityInStock != 1 ? "s" : "") in stock
+                                &nbsp;·&nbsp;
+                                @(Model.Available ? "Listed for sale" : "Not listed")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--muted">
+                            <i data-lucide="align-left" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Description</span>
+                            @if (!string.IsNullOrWhiteSpace(Model.Description))
+                            {
+                                <span class="pw-del-row__value">@Model.Description</span>
+                            }
+                            else
+                            {
+                                <span class="pw-del-row__value pw-del-row__value--muted">No description provided.</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (allergens != null && allergens.Length > 0)
+                    {
+                        <div class="pw-del-row">
+                            <div class="pw-del-row__icon pw-del-row__icon--orange">
+                                <i data-lucide="alert-triangle" style="width:16px;height:16px;stroke-width:2"></i>
+                            </div>
+                            <div class="pw-del-row__content">
+                                <span class="pw-del-row__label">Allergens</span>
+                                <div class="pw-del-allergen-list">
+                                    @foreach (var a in allergens)
+                                    {
+                                        <span class="pw-del-allergen-chip">@a</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
+                    {
+                        <div class="pw-del-row">
+                            <div class="pw-del-row__icon pw-del-row__icon--muted">
+                                <i data-lucide="image" style="width:16px;height:16px;stroke-width:2"></i>
+                            </div>
+                            <div class="pw-del-row__content">
+                                <span class="pw-del-row__label">Image path</span>
+                                <span class="pw-del-row__value" style="font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;color:var(--text-muted);">@Model.ImagePath</span>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Producers != null)
+                    {
+                        <div class="pw-del-row">
+                            <div class="pw-del-row__icon pw-del-row__icon--green">
+                                <i data-lucide="user" style="width:16px;height:16px;stroke-width:2"></i>
+                            </div>
+                            <div class="pw-del-row__content">
+                                <span class="pw-del-row__label">Producer</span>
+                                <span class="pw-del-row__value">
+                                    <a asp-controller="Producers" asp-action="Details" asp-route-id="@Model.ProducersId">@Model.Producers.ProducerName</a>
+                                </span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--purple">
+                            <i data-lucide="hash" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">System ID</span>
+                            <span class="pw-del-row__value" style="font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;">#@Model.ProductsId</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Impact warning ─────────────────────────── -->
+        <div class="pw-del-impact" role="alert">
+            <div class="pw-del-impact__header">
+                <i data-lucide="triangle-alert" style="width:18px;height:18px;color:#9A3412;stroke-width:2;flex-shrink:0"></i>
+                <h2>What will be permanently deleted</h2>
+            </div>
+            <div class="pw-del-impact__body">
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    The <strong>@Model.ItemName</strong> product listing and all its details
+                </div>
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    All basket entries referencing this product
+                </div>
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    All order line items and fulfilment records for this product
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
+                {
+                    <div class="pw-del-impact__item">
+                        <span class="pw-del-impact__item-dot"></span>
+                        The associated image record (file on disk is not removed automatically)
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── Danger confirm form ─────────────────────── -->
+        <div class="pw-del-confirm">
+            <div class="pw-del-confirm__header">
+                <div class="pw-del-confirm__icon-box" aria-hidden="true">
+                    <i data-lucide="shield-alert" style="width:20px;height:20px;stroke-width:2"></i>
+                </div>
+                <div>
+                    <h2>Confirm deletion</h2>
+                    <p>Check the box below to enable the delete button</p>
+                </div>
+            </div>
+            <div class="pw-del-confirm__body">
+                <label class="pw-del-checkbox-row" for="confirmDelete">
+                    <input type="checkbox" id="confirmDelete" aria-describedby="confirmDeleteDesc" />
+                    <span class="pw-del-checkbox-row__text" id="confirmDeleteDesc">
+                        I understand that deleting <strong>@Model.ItemName</strong> is permanent.
+                        This will remove the product listing, all basket entries, and all associated order records — and cannot be recovered.
+                    </span>
+                </label>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="ProductsId" />
+                    <div class="pw-del-actions">
+                        <a asp-action="Details" asp-route-id="@Model.ProductsId" class="pw-btn-cancel">
+                            <i data-lucide="arrow-left" style="width:15px;height:15px;" aria-hidden="true"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="pw-btn-delete" id="deleteBtn" disabled aria-disabled="true">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;" aria-hidden="true"></i>
+                            Delete permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    if (window.lucide) lucide.createIcons();
+
+    var checkbox  = document.getElementById('confirmDelete');
+    var deleteBtn = document.getElementById('deleteBtn');
+
+    if (checkbox && deleteBtn) {
+        checkbox.addEventListener('change', function () {
+            var ready = checkbox.checked;
+            deleteBtn.disabled = !ready;
+            deleteBtn.setAttribute('aria-disabled', String(!ready));
+            deleteBtn.classList.toggle('is-ready', ready);
+        });
+    }
+}());
+</script>
+}

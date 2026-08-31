@@ -1,0 +1,862 @@
+@model IEnumerable<GFLHApp.Models.BasketProducts>
+@{
+    ViewData["Title"] = "Your Basket";
+    ViewData["FullWidth"] = true;
+
+    var basketId    = Model.FirstOrDefault()?.BasketId;
+    var itemCount   = Model.Count();
+    var subtotal    = (decimal)(ViewBag.Subtotal ?? 0m);
+    var discount    = (decimal)(ViewBag.Discount  ?? 0m);
+    var total       = (decimal)(ViewBag.Total      ?? 0m);
+    var hasDiscount = discount > 0;
+    var hasHealthBundle = (bool)(ViewBag.HasHealthBundle ?? false);
+    var anyAllergens = Model.Any(i => !string.IsNullOrWhiteSpace(i.Products?.Allergens));
+
+    string CatIcon(string cat) => (cat ?? "").ToLower() switch {
+        var c when c.Contains("veg")               => "carrot",
+        var c when c.Contains("fruit")             => "cherry",
+        var c when c.Contains("dairy")             => "milk",
+        var c when c.Contains("meat")              => "beef",
+        var c when c.Contains("bread")||c.Contains("bak") => "wheat",
+        var c when c.Contains("drink")             => "cup-soda",
+        var c when c.Contains("egg")               => "egg",
+        var c when c.Contains("herb")||c.Contains("flow") => "flower-2",
+        var c when c.Contains("honey")             => "droplets",
+        _                                          => "package"
+    };
+    var gradients = new[]{
+        "linear-gradient(135deg,#dcfce7,#86efac)",
+        "linear-gradient(135deg,#bbf7d0,#4ade80)",
+        "linear-gradient(135deg,#a7f3d0,#34d399)",
+        "linear-gradient(135deg,#d9f99d,#86efac)",
+        "linear-gradient(135deg,#fef9c3,#fde68a)",
+        "linear-gradient(135deg,#ffedd5,#fed7aa)",
+    };
+}
+
+<style>
+/* ══ Basket Page ═══════════════════════════════════════════ */
+
+/* ── Page shell ─────────────────────────────────────────── */
+.bk-page {
+    min-height: 100vh;
+    background: var(--cream);
+}
+
+/* ── Checkout steps ─────────────────────────────────────── */
+.bk-steps {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    padding-top: 88px;
+}
+.bk-steps__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+.bk-step {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 20px 14px 0;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-light);
+    position: relative;
+    white-space: nowrap;
+}
+.bk-step + .bk-step { padding-left: 20px; }
+.bk-step + .bk-step::before {
+    content: '';
+    position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 1px; height: 20px;
+    background: var(--border);
+}
+.bk-step__num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800;
+    flex-shrink: 0;
+}
+.bk-step--active { color: var(--green-800); }
+.bk-step--active .bk-step__num {
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(22,163,74,.35);
+}
+.bk-step--done { color: var(--text-muted); }
+.bk-step--done .bk-step__num {
+    background: var(--green-100);
+    color: var(--green);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.bk-header {
+    padding: 0;
+    background: linear-gradient(160deg, var(--cream) 0%, #ebf7f0 100%);
+    border-bottom: 1px solid var(--border);
+}
+.bk-header__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 28px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+}
+.bk-header__left {}
+.bk-header__eyebrow {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--green);
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 8px;
+}
+.bk-header__title {
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3.5vw, 32px);
+    font-weight: 800; color: var(--text);
+    margin: 0; line-height: 1.15; letter-spacing: -.025em;
+}
+.bk-header__title em { color: var(--green); font-style: normal; }
+.bk-header__sub {
+    font-size: 14px; color: var(--text-muted);
+    margin: 6px 0 0;
+}
+.bk-header__cta {
+    display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Body layout ────────────────────────────────────────── */
+.bk-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 24px 80px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    align-items: start;
+}
+@@media (max-width: 900px) {
+    .bk-body { grid-template-columns: 1fr; }
+    .bk-summary-col { order: -1; }
+}
+
+/* ── Items column header ─────────────────────────────────── */
+.bk-items-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--text-muted);
+    padding: 0 0 12px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 4px;
+}
+
+/* ── Item card ───────────────────────────────────────────── */
+.bk-item {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+    transition: box-shadow .2s, border-color .2s, transform .2s;
+    animation: bk-slide-in .4s cubic-bezier(.34,1.56,.64,1) both;
+    margin-bottom: 12px;
+}
+.bk-item:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--green-200);
+    transform: translateY(-2px);
+}
+@@keyframes bk-slide-in {
+    from { opacity: 0; transform: translateY(18px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* staggered delay per item */
+.bk-item:nth-child(1) { animation-delay: .05s; }
+.bk-item:nth-child(2) { animation-delay: .12s; }
+.bk-item:nth-child(3) { animation-delay: .19s; }
+.bk-item:nth-child(4) { animation-delay: .26s; }
+.bk-item:nth-child(5) { animation-delay: .33s; }
+.bk-item:nth-child(n+6) { animation-delay: .38s; }
+
+.bk-item__img {
+    width: 76px; height: 76px; flex-shrink: 0;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .25s ease;
+}
+.bk-item:hover .bk-item__img { transform: scale(1.04); }
+.bk-item__img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.bk-item__img--placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+}
+.bk-item__img--placeholder i {
+    width: 28px; height: 28px; stroke-width: 1.5;
+    color: rgba(255,255,255,.85);
+}
+
+.bk-item__body { flex: 1; min-width: 0; }
+.bk-item__category {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--green);
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 4px;
+}
+.bk-item__name {
+    font-family: var(--font-display);
+    font-size: 16px; font-weight: 700; color: var(--text);
+    margin: 0 0 8px; line-height: 1.25;
+}
+.bk-item__allergens {
+    display: flex; flex-wrap: wrap; gap: 4px;
+}
+.bk-item__allergen-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px;
+    border-radius: var(--r-full);
+    border: 1px solid #FED7AA;
+    background: #FFF7ED;
+    color: #9A3412;
+    font-size: 10.5px; font-weight: 700;
+}
+.bk-item__allergen-none {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; color: var(--green);
+}
+
+.bk-item__right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 6px;
+    flex-shrink: 0; min-width: 90px;
+}
+.bk-item__right form {
+    margin: 0;
+}
+.bk-item__qty {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+    white-space: nowrap;
+}
+.bk-item__unit-price {
+    font-size: 12px; color: var(--text-muted);
+    white-space: nowrap;
+}
+.bk-item__line-total {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 800; color: var(--text);
+    white-space: nowrap;
+}
+.bk-item__remove {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; color: var(--text-light);
+    cursor: pointer; text-decoration: none;
+    padding: 4px 8px; border-radius: var(--r-full);
+    transition: background .15s, color .15s;
+    margin-top: 4px;
+    border: 1px solid transparent;
+    background: transparent;
+}
+.bk-item__remove:hover {
+    background: #fee2e2; color: #DC2626;
+    border-color: #fecaca;
+}
+
+/* ── Allergen notice ─────────────────────────────────────── */
+.bk-allergen-notice {
+    background: #FFF7ED;
+    border: 1.5px solid #FED7AA;
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: #7C2D12;
+    line-height: 1.55;
+    margin-bottom: 20px;
+}
+.bk-allergen-notice i { flex-shrink: 0; margin-top: 1px; }
+
+/* ── Footer row (continue shopping) ─────────────────────── */
+.bk-items-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+}
+
+/* ── Summary card ────────────────────────────────────────── */
+.bk-summary-col {
+    position: sticky;
+    top: 100px;
+}
+.bk-summary {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: bk-slide-in .45s .08s cubic-bezier(.34,1.56,.64,1) both;
+}
+.bk-summary__header {
+    background: linear-gradient(135deg, var(--green-900) 0%, #1a4a2a 50%, var(--green-800) 100%);
+    padding: 20px 24px;
+    position: relative; overflow: hidden;
+}
+.bk-summary__header::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(245,158,11,.18) 0%, transparent 60%);
+    pointer-events: none;
+}
+.bk-summary__header-title {
+    font-family: var(--font-display);
+    font-size: 17px; font-weight: 800; color: #fff;
+    margin: 0 0 2px; position: relative; z-index: 1;
+}
+.bk-summary__header-sub {
+    font-size: 12px; color: rgba(255,255,255,.6);
+    position: relative; z-index: 1;
+}
+
+.bk-summary__body { padding: 20px 24px; }
+
+.bk-summary__row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+.bk-summary__row:last-of-type { border-bottom: none; }
+.bk-summary__row-label { color: var(--text-muted); font-weight: 500; }
+.bk-summary__row-value { font-weight: 700; color: var(--text); }
+
+/* Discount row */
+.bk-summary__discount {
+    background: var(--green-100);
+    border: 1.5px solid var(--green-200);
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+.bk-summary__discount-left {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: var(--green-800);
+}
+.bk-summary__discount-badge {
+    background: var(--green);
+    color: #fff;
+    font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: var(--r-full);
+    white-space: nowrap;
+}
+.bk-summary__discount-value {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 800; color: var(--green-800);
+    white-space: nowrap;
+}
+
+/* Total row */
+.bk-summary__total {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0 4px;
+    margin-top: 4px;
+    border-top: 2px solid var(--border);
+}
+.bk-summary__total-label {
+    font-family: var(--font-display);
+    font-size: 16px; font-weight: 700; color: var(--text);
+}
+.bk-summary__total-value {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 900; color: var(--text);
+    letter-spacing: -.02em;
+}
+.bk-summary__total-vat {
+    font-size: 11px; color: var(--text-muted);
+    text-align: right; margin-top: -2px;
+    display: block;
+}
+
+/* Checkout button */
+.bk-checkout-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; margin-top: 18px;
+    padding: 17px 24px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-700) 100%);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 16px; font-weight: 800;
+    border-radius: var(--r-full);
+    text-decoration: none;
+    border: none; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(22,163,74,.4);
+    transition: transform .15s, box-shadow .15s;
+    position: relative; overflow: hidden;
+    letter-spacing: -.01em;
+}
+.bk-checkout-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+    pointer-events: none;
+}
+.bk-checkout-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(22,163,74,.5);
+    color: #fff;
+}
+.bk-checkout-btn:active { transform: translateY(-1px); }
+/* Subtle pulse animation to draw the eye */
+@@keyframes bk-checkout-pulse {
+    0%, 100% { box-shadow: 0 6px 24px rgba(22,163,74,.4); }
+    50%       { box-shadow: 0 8px 32px rgba(22,163,74,.65), 0 0 0 6px rgba(22,163,74,.12); }
+}
+.bk-checkout-btn { animation: bk-checkout-pulse 2.8s ease-in-out infinite; }
+.bk-checkout-btn:hover { animation: none; }
+
+/* Trust badges */
+.bk-trust {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 18px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+.bk-trust__item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; color: var(--text-muted);
+}
+.bk-trust__item i {
+    width: 15px; height: 15px; color: var(--green); flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.bk-empty {
+    min-height: calc(100vh - 200px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 24px;
+}
+.bk-empty__card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-md);
+    padding: 56px 48px;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+    animation: bk-slide-in .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.bk-empty__icon {
+    width: 88px; height: 88px;
+    background: linear-gradient(135deg, var(--green-100), var(--cream-2));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    animation: bk-float 3s ease-in-out infinite;
+}
+@@keyframes bk-float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+}
+.bk-empty__icon i { width: 40px; height: 40px; color: var(--green); stroke-width: 1.5; }
+.bk-empty__title {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 800; color: var(--text);
+    margin: 0 0 10px; letter-spacing: -.02em;
+}
+.bk-empty__sub {
+    font-size: 15px; color: var(--text-muted);
+    line-height: 1.6; margin: 0 0 28px;
+}
+.bk-empty__hints {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 28px;
+}
+.bk-empty__hint {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-muted); font-weight: 500;
+}
+.bk-empty__hint i { width: 15px; height: 15px; color: var(--green); flex-shrink: 0; }
+
+@@media (max-width: 520px) {
+    .bk-item { flex-wrap: wrap; }
+    .bk-item__right { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; min-width: unset; }
+    .bk-empty__card { padding: 40px 24px; }
+    .bk-steps__inner { gap: 0; overflow-x: auto; }
+}
+</style>
+
+<div class="bk-page">
+
+@if (!Model.Any())
+{
+    <!-- ══ EMPTY STATE ═══════════════════════════════════════ -->
+    <div style="padding-top:88px;">
+        <div class="bk-empty">
+            <div class="bk-empty__card">
+                <div class="bk-empty__icon" aria-hidden="true">
+                    <i data-lucide="shopping-basket"></i>
+                </div>
+                <h1 class="bk-empty__title">Your basket is empty</h1>
+                <p class="bk-empty__sub">Looks like you haven't added anything yet. Discover fresh, local produce from our growers.</p>
+
+                <div class="bk-empty__hints">
+                    <div class="bk-empty__hint">
+                        <i data-lucide="sprout"></i>
+                        Seasonal vegetables &amp; fruit
+                    </div>
+                    <div class="bk-empty__hint">
+                        <i data-lucide="milk"></i>
+                        Dairy, eggs &amp; artisan goods
+                    </div>
+                    <div class="bk-empty__hint">
+                        <i data-lucide="wheat"></i>
+                        Fresh breads &amp; preserves
+                    </div>
+                </div>
+
+                <a asp-controller="Products" asp-action="Index"
+                   class="pw-btn pw-btn--primary pw-btn--lg" style="width:100%;justify-content:center;">
+                    <i data-lucide="store" style="width:17px;height:17px;stroke-width:2.5"></i>
+                    Browse the shop
+                </a>
+                <a asp-controller="Producers" asp-action="Index"
+                   class="pw-btn pw-btn--ghost pw-btn--md" style="width:100%;justify-content:center;margin-top:10px;">
+                    <i data-lucide="users" style="width:16px;height:16px;stroke-width:2.5"></i>
+                    Meet the growers
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ══ STEPS BAR ═════════════════════════════════════════ -->
+    <div class="bk-steps" aria-label="Checkout steps">
+        <div class="bk-steps__inner">
+            <div class="bk-step bk-step--active" aria-current="step">
+                <span class="bk-step__num" aria-hidden="true">1</span>
+                <span>Your basket</span>
+            </div>
+            <div class="bk-step">
+                <span class="bk-step__num" aria-hidden="true">2</span>
+                <span>Review order</span>
+            </div>
+            <div class="bk-step">
+                <span class="bk-step__num" aria-hidden="true">3</span>
+                <span>Confirmed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ HEADER ════════════════════════════════════════════ -->
+    <div class="bk-header">
+        <div class="bk-header__inner">
+            <div class="bk-header__left">
+                <p class="bk-header__eyebrow">
+                    <i data-lucide="shopping-basket" style="width:13px;height:13px;stroke-width:2.5"></i>
+                    Ready to checkout
+                </p>
+                <h1 class="bk-header__title">
+                    Your basket
+                    <em>&nbsp;·&nbsp;@itemCount item@(itemCount != 1 ? "s" : "")</em>
+                </h1>
+                <p class="bk-header__sub">Review your items, then proceed when you're ready.</p>
+            </div>
+            <div class="bk-header__cta">
+                <a asp-controller="Products" asp-action="Index"
+                   class="pw-btn pw-btn--ghost pw-btn--sm">
+                    <i data-lucide="plus" style="width:14px;height:14px;stroke-width:2.5"></i>
+                    Add more items
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ BODY ══════════════════════════════════════════════ -->
+    <div class="bk-body">
+
+        <!-- ── Items column ──────────────────────────────── -->
+        <div class="bk-items-col">
+
+            <div class="bk-items-label" aria-hidden="true">
+                <span>@itemCount item@(itemCount != 1 ? "s" : "") in your basket</span>
+                <span>Line total</span>
+            </div>
+
+            @{ int idx = 0; }
+            @foreach (var item in Model)
+            {
+                var lineTotal   = item.Products.ItemPrice * item.ProductQuantity;
+                var allergens   = string.IsNullOrWhiteSpace(item.Products?.Allergens)
+                                    ? null
+                                    : item.Products.Allergens.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var hasImg      = !string.IsNullOrWhiteSpace(item.Products?.ImagePath);
+                var grad        = gradients[idx % gradients.Length];
+                var catIcon     = CatIcon(item.Products?.Category ?? "");
+                idx++;
+
+                <article class="bk-item" aria-label="@item.Products.ItemName">
+                    <!-- Image -->
+                    <div class="bk-item__img" aria-hidden="true">
+                        @if (hasImg)
+                        {
+                            <img src="@item.Products.ImagePath" alt="@item.Products.ItemName" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="bk-item__img--placeholder" style="background:@grad;">
+                                <i data-lucide="@catIcon" style="width:28px;height:28px;stroke-width:1.5;color:rgba(22,101,52,.7)"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Info -->
+                    <div class="bk-item__body">
+                        <span class="bk-item__category">
+                            <i data-lucide="tag" style="width:10px;height:10px;stroke-width:2.5"></i>
+                            @item.Products.Category
+                        </span>
+                        <h2 class="bk-item__name">@item.Products.ItemName</h2>
+                        <div class="bk-item__allergens" aria-label="Allergen information">
+                            @if (allergens != null && allergens.Length > 0)
+                            {
+                                @foreach (var a in allergens)
+                                {
+                                    <span class="bk-item__allergen-chip">
+                                        <i data-lucide="alert-triangle" style="width:9px;height:9px;stroke-width:2.5"></i>
+                                        @a
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="bk-item__allergen-none">
+                                    <i data-lucide="check-circle-2" style="width:12px;height:12px;stroke-width:2.5"></i>
+                                    No allergens declared
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Price / remove -->
+                    <div class="bk-item__right">
+                        <span class="bk-item__qty">Qty: @item.ProductQuantity</span>
+                        <span class="bk-item__unit-price">£@item.Products.ItemPrice.ToString("0.00") each</span>
+                        <span class="bk-item__line-total">£@lineTotal.ToString("0.00")</span>
+                        <form asp-controller="BasketProducts"
+                              asp-action="RemoveFromBasket"
+                              asp-route-id="@item.BasketProductsId"
+                              method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="bk-item__remove"
+                                    aria-label="Remove @item.Products.ItemName from basket">
+                            <i data-lucide="x" style="width:12px;height:12px;stroke-width:2.5"></i>
+                            Remove
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            }
+
+            <!-- Allergen notice (shown only if any item has allergens) -->
+            @if (anyAllergens)
+            {
+                <div class="bk-allergen-notice" role="note" aria-label="Allergen notice">
+                    <i data-lucide="triangle-alert" style="width:18px;height:18px;stroke-width:2;color:#F97316;flex-shrink:0"></i>
+                    <span>
+                        <strong>Allergen notice:</strong> Allergen information is shown on each item above.
+                        If you have concerns about any allergen, please contact the producer before completing your order.
+                        Provided in accordance with Natasha's Law.
+                    </span>
+                </div>
+            }
+
+            <div class="bk-items-footer">
+                <a asp-controller="Products" asp-action="Index"
+                   class="pw-btn pw-btn--outline pw-btn--sm">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;stroke-width:2.5"></i>
+                    Continue shopping
+                </a>
+                <span style="font-size:13px;color:var(--text-muted);">
+                    <i data-lucide="shield-check" style="width:13px;height:13px;vertical-align:middle;color:var(--green);stroke-width:2.5"></i>
+                    Secure checkout
+                </span>
+            </div>
+        </div>
+
+        <!-- ── Summary column ────────────────────────────── -->
+        <aside class="bk-summary-col" aria-label="Order summary">
+            <div class="bk-summary">
+                <div class="bk-summary__header">
+                    <p class="bk-summary__header-title">Order summary</p>
+                    <p class="bk-summary__header-sub">@itemCount item@(itemCount != 1 ? "s" : "") from local farms</p>
+                </div>
+
+                <div class="bk-summary__body">
+
+                    <div class="bk-summary__row">
+                        <span class="bk-summary__row-label">Subtotal</span>
+                        <span class="bk-summary__row-value">£@subtotal.ToString("0.00")</span>
+                    </div>
+
+                        @if (hasDiscount)
+                        {
+                            <div class="bk-summary__discount" aria-label="Discount applied">
+                                <div class="bk-summary__discount-left">
+                                    <i data-lucide="@(hasHealthBundle ? "salad" : "star")"
+                                       style="width:15px;height:15px;stroke-width:2.5;color:var(--green)"></i>
+                                    <span>
+                                        <span class="bk-summary__discount-badge">
+                                            @(hasHealthBundle ? "Health bundle" : "Loyalty reward")
+                                        </span><br />
+                                        <span style="font-size:11px;font-weight:500;color:var(--green-700);">
+                                            @(hasHealthBundle ? "Broccoli, carrot & apple 🥦🥕🍎" : "Saved on this order")
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="bk-summary__discount-value">−£@discount.ToString("0.00")</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bk-summary__row">
+                                <span class="bk-summary__row-label" style="display:flex;align-items:center;gap:5px;">
+                                    <i data-lucide="star" style="width:13px;height:13px;stroke-width:2;color:var(--text-light)"></i>
+                                    Loyalty discount
+                                </span>
+                                <span class="bk-summary__row-value" style="color:var(--text-light);font-weight:500;">—</span>
+                            </div>
+                            <div class="bk-summary__row" style="border-bottom:none;padding-top:4px;">
+                                <span class="bk-summary__row-label" style="display:flex;align-items:center;gap:5px;font-size:12px;">
+                                    <i data-lucide="salad" style="width:13px;height:13px;stroke-width:2;color:var(--text-light)"></i>
+                                    Add broccoli, carrot &amp; apple for 10% off
+                                </span>
+                            </div>
+                        }
+
+                        @if (hasDiscount)
+                        {
+                            <p style="font-size:12px;color:var(--green-700);font-weight:600;text-align:center;margin:6px 0 0;display:flex;align-items:center;justify-content:center;gap:5px;">
+                                <i data-lucide="party-popper" style="width:13px;height:13px;stroke-width:2.5"></i>
+                                @if (hasHealthBundle)
+                                {
+                                    <span>You saved £@discount.ToString("0.00") with the health bundle!</span>
+                                }
+                                else
+                                {
+                                    <span>You saved £@discount.ToString("0.00") with your loyalty reward!</span>
+                                }
+                            </p>
+                        }
+
+                    <a asp-controller="Orders" asp-action="Create"
+                       asp-route-basketId="@basketId"
+                       class="bk-checkout-btn"
+                       aria-label="Proceed to checkout">
+                        <i data-lucide="lock" style="width:18px;height:18px;stroke-width:2.5"></i>
+                        Proceed to checkout
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;stroke-width:2.5;margin-left:2px"></i>
+                    </a>
+
+                    <div class="bk-trust" aria-label="Trust signals">
+                        <div class="bk-trust__item">
+                            <i data-lucide="shield-check"></i>
+                            Secure, encrypted checkout
+                        </div>
+                        <div class="bk-trust__item">
+                            <i data-lucide="sprout"></i>
+                            Direct from verified local farms
+                        </div>
+                        <div class="bk-trust__item">
+                            <i data-lucide="refresh-cw"></i>
+                            Easy returns &amp; support
+                        </div>
+                        <div class="bk-trust__item">
+                            <i data-lucide="leaf"></i>
+                            Fresh, seasonal &amp; sustainable
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+}
+
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    if (window.lucide) lucide.createIcons();
+
+    /* ── Particle burst on remove hover ────────────────────── */
+    document.querySelectorAll('.bk-item__remove').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            var colors = ['#fca5a5','#f87171','#ef4444','#fecaca'];
+            var r = btn.getBoundingClientRect();
+            var cx = r.left + r.width / 2;
+            var cy = r.top  + r.height / 2;
+            for (var i = 0; i < 10; i++) {
+                (function (i) {
+                    setTimeout(function () {
+                        var el    = document.createElement('div');
+                        var size  = 5 + Math.random() * 7;
+                        var angle = Math.random() * Math.PI * 2;
+                        var speed = 40 + Math.random() * 80;
+                        var dx    = Math.cos(angle) * speed;
+                        var dy    = Math.sin(angle) * speed - 30;
+                        var color = colors[Math.floor(Math.random() * colors.length)];
+                        el.style.cssText =
+                            'position:fixed;pointer-events:none;z-index:9999;border-radius:50%;' +
+                            'width:' + size + 'px;height:' + size + 'px;background:' + color + ';' +
+                            'left:' + (cx - size / 2) + 'px;top:' + (cy - size / 2) + 'px;';
+                        document.body.appendChild(el);
+                        el.animate(
+                            [{ transform: 'translate(0,0) scale(1)', opacity: 1 },
+                             { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(0)', opacity: 0 }],
+                            { duration: 450, easing: 'ease-out', fill: 'forwards' }
+                        ).onfinish = function () { el.remove(); };
+                    }, i * 20);
+                }(i));
+            }
+        });
+    });
+
+    /* ── Animate total counter on load ────────────────────── */
+    var totalEl = document.querySelector('.bk-summary__total-value');
+    if (totalEl) {
+        var raw = parseFloat(totalEl.textContent.replace('£', '')) || 0;
+        var t0  = performance.now();
+        var dur = 700;
+        (function tick(now) {
+            var p    = Math.min((now - t0) / dur, 1);
+            var ease = 1 - Math.pow(1 - p, 3);
+            totalEl.textContent = '£' + (ease * raw).toFixed(2);
+            if (p < 1) requestAnimationFrame(tick);
+        }(t0));
+    }
+
+    /* ── Nudge checkout button once after 4 s ─────────────── */
+    var checkoutBtn = document.querySelector('.bk-checkout-btn');
+    if (checkoutBtn) {
+        setTimeout(function () {
+            checkoutBtn.style.animation = 'none';
+            checkoutBtn.style.transform = 'scale(1.04)';
+            setTimeout(function () {
+                checkoutBtn.style.transform = '';
+                checkoutBtn.style.animation = 'bk-checkout-pulse 2.8s ease-in-out infinite';
+            }, 300);
+        }, 4000);
+    }
+}());
+</script>
+}

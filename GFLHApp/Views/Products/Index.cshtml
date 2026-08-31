@@ -1,0 +1,1197 @@
+@model IEnumerable<GFLHApp.Models.Products>
+@{
+    ViewData["Title"] = "Shop the Harvest";
+    ViewData["FullWidth"] = true;
+
+    var productList = Model.ToList();
+    var categories = productList
+        .Select(p => p.Category)
+        .Where(c => !string.IsNullOrWhiteSpace(c))
+        .Distinct()
+        .OrderBy(c => c)
+        .ToList();
+    var producers = productList
+        .Where(p => p.Producers != null && !string.IsNullOrWhiteSpace(p.Producers.ProducerName))
+        .Select(p => p.Producers.ProducerName)
+        .Distinct()
+        .OrderBy(n => n)
+        .ToList();
+    var availableCount = productList.Count(p => p.Available && p.QuantityInStock > 0);
+}
+
+<style>
+    /* ── Shop Hero ──────────────────────────────────────────── */
+    .pw-shop-hero {
+        background: linear-gradient(140deg, var(--cream-3) 0%, #E9FAF0 55%, var(--green-100) 100%);
+        padding: 130px 32px 80px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42vh;
+    }
+
+    .pw-shop-hero__content {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        max-width: 680px;
+    }
+
+    .pw-shop-hero__badge {
+        margin-bottom: 20px;
+    }
+
+    .pw-shop-hero__title {
+        font-family: var(--font-display);
+        font-size: clamp(40px, 6vw, 68px);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -.03em;
+        margin: 0 0 16px;
+        color: var(--text);
+    }
+
+        .pw-shop-hero__title em {
+            color: var(--green);
+            font-style: normal;
+        }
+
+    .pw-shop-hero__sub {
+        font-size: clamp(15px, 1.6vw, 18px);
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* ── Admin Ribbon ───────────────────────────────────────── */
+    .pw-admin-ribbon {
+        background: var(--text);
+        padding: 10px 0;
+    }
+
+    .pw-admin-ribbon__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pw-admin-ribbon__label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--cream-2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* ── Filter Bar ─────────────────────────────────────────── */
+    .pw-filters-bar {
+        background: rgba(255,251,235,.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 2px solid var(--border);
+        padding: 14px 0;
+        position: sticky;
+        top: 72px;
+        z-index: 200;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+
+    .pw-filters-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .pw-filter-search {
+        position: relative;
+        min-width: 200px;
+        max-width: 240px;
+        flex-shrink: 0;
+    }
+
+    .pw-filter-search__icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+        width: 15px;
+        height: 15px;
+    }
+
+    .pw-filter-input {
+        width: 100%;
+        padding: 9px 14px 9px 38px;
+        border: 2px solid var(--border);
+        border-radius: var(--r-full);
+        font-family: var(--font-body);
+        font-size: 14px;
+        background: var(--white);
+        color: var(--text);
+        transition: border-color .15s;
+        outline: none;
+    }
+
+        .pw-filter-input:focus {
+            border-color: var(--green);
+        }
+
+    .pw-filter-select {
+        padding: 9px 34px 9px 14px;
+        border: 2px solid var(--border);
+        border-radius: var(--r-full);
+        font-family: var(--font-body);
+        font-size: 14px;
+        font-weight: 500;
+        background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+        -webkit-appearance: none;
+        appearance: none;
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color .15s;
+        outline: none;
+    }
+
+        .pw-filter-select:focus {
+            border-color: var(--green);
+        }
+
+    .pw-filter-pills {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .pw-filter-pill {
+        padding: 7px 14px;
+        border-radius: var(--r-full);
+        font-size: 13px;
+        font-weight: 600;
+        border: 2px solid var(--border);
+        background: var(--white);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all .15s;
+        white-space: nowrap;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+        .pw-filter-pill:hover {
+            border-color: var(--green-200);
+            color: var(--text);
+            background: var(--green-100);
+        }
+
+        .pw-filter-pill.is-active {
+            background: var(--green);
+            border-color: var(--green);
+            color: var(--white);
+        }
+
+        .pw-filter-pill:focus-visible {
+            outline: 2px solid var(--green);
+            outline-offset: 2px;
+        }
+
+    .pw-filter-sep {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+        flex-shrink: 0;
+    }
+
+    .pw-filter-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .pw-filter-count strong {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+    .pw-filter-clear {
+        display: none;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: none;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        padding: 5px 12px;
+        border-radius: var(--r-full);
+        transition: all .15s;
+        font-family: var(--font-body);
+    }
+
+        .pw-filter-clear.is-visible {
+            display: inline-flex;
+        }
+
+        .pw-filter-clear:hover {
+            background: var(--cream-2);
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+
+    /* ── Product Grid ───────────────────────────────────────── */
+    .pw-shop-grid {
+        padding: 56px 0 96px;
+        background: var(--cream);
+        min-height: 400px;
+    }
+
+    /* Stock badge (top-left) */
+    .pw-card__stock {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1;
+    }
+
+    /* Image placeholder */
+    .pw-card__img-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--green-100) 0%, var(--cream-2) 100%);
+    }
+
+    /* Category pill on card */
+    .pw-card__cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: var(--r-full);
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        background: var(--green-100);
+        color: var(--green-800);
+        margin-bottom: 8px;
+    }
+
+    /* Unavailable/out-of-stock card dimming */
+    .pw-card--out {
+        opacity: .72;
+    }
+
+        .pw-card--out .pw-card__photo {
+            filter: grayscale(35%);
+        }
+
+    /* Allergen chips */
+    .pw-card__allergens {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 14px;
+    }
+
+    .pw-allergen-tag {
+        display: inline-flex;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        background: var(--yellow-100);
+        color: #92400E;
+        border-radius: var(--r-full);
+        letter-spacing: .02em;
+        text-transform: uppercase;
+    }
+
+    /* Admin links row */
+    .pw-card__admin {
+        display: flex;
+        gap: 6px;
+        padding-top: 10px;
+        border-top: 1.5px solid var(--border);
+        margin-top: 4px;
+    }
+
+        .pw-card__admin a {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            transition: all .15s;
+        }
+
+            .pw-card__admin a:hover {
+                border-color: var(--green);
+                color: var(--green);
+                background: var(--green-100);
+            }
+
+            .pw-card__admin a.danger:hover {
+                border-color: #DC2626;
+                color: #DC2626;
+                background: #FEF2F2;
+            }
+
+    /* Empty state */
+    .pw-empty-state {
+        display: none;
+        text-align: center;
+        padding: 80px 32px;
+        grid-column: 1 / -1;
+    }
+
+        .pw-empty-state.is-visible {
+            display: block;
+        }
+
+    .pw-empty-icon {
+        color: var(--text-light);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .pw-empty-title {
+        font-family: var(--font-display);
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: var(--text);
+    }
+
+    .pw-empty-sub {
+        color: var(--text-muted);
+        margin: 0 0 24px;
+        font-size: 15px;
+    }
+
+    /* ── Quantity control ───────────────────────────────────── */
+    .pw-add-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .pw-qty-control {
+        display: flex;
+        align-items: center;
+        border: 2px solid var(--border);
+        border-radius: var(--r-full);
+        background: var(--white);
+        overflow: hidden;
+    }
+
+    .pw-qty-btn {
+        width: 26px;
+        height: 28px;
+        background: none;
+        border: none;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .12s, color .12s;
+        padding: 0;
+        line-height: 1;
+        font-family: var(--font-body);
+        flex-shrink: 0;
+    }
+
+        .pw-qty-btn:hover {
+            background: var(--green-100);
+            color: var(--green);
+        }
+
+        .pw-qty-btn:focus-visible {
+            outline: 2px solid var(--green);
+            outline-offset: -2px;
+        }
+
+    .pw-qty-display {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        min-width: 22px;
+        text-align: center;
+        user-select: none;
+        padding: 0 2px;
+    }
+
+    /* ── Loading spinner ────────────────────────────────────── */
+    .pw-spinner {
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: pw-spin .6s linear infinite;
+        vertical-align: middle;
+    }
+
+    @@keyframes pw-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ── Add-to-basket toast ────────────────────────────────── */
+    .pw-add-toast {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%) translateY(14px);
+        background: var(--text);
+        color: var(--cream);
+        padding: 10px 22px;
+        border-radius: var(--r-full);
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9998;
+        opacity: 0;
+        transition: opacity .22s, transform .22s;
+        white-space: nowrap;
+        box-shadow: var(--shadow-lg);
+        pointer-events: none;
+    }
+
+        .pw-add-toast.is-visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    /* Error toast */
+    .pw-toast {
+        position: fixed;
+        top: 96px;
+        right: 24px;
+        z-index: 9999;
+        padding: 14px 20px;
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow-lg);
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 380px;
+        animation: toastIn .3s ease;
+    }
+
+    .pw-toast--error {
+        background: #DC2626;
+        color: white;
+    }
+
+    @@keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @@media (max-width: 900px) {
+        .pw-filters-inner {
+            gap: 8px;
+        }
+
+        .pw-filter-search {
+            min-width: 160px;
+        }
+
+        .pw-filter-count {
+            margin-left: 0;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .pw-shop-hero {
+            padding: 120px 20px 60px;
+            min-height: 35vh;
+        }
+
+        .pw-filters-bar {
+            top: 60px;
+        }
+
+        .pw-filters-inner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .pw-filter-search {
+            max-width: 100%;
+            min-width: unset;
+        }
+
+        .pw-filter-select {
+            width: 100%;
+        }
+
+        .pw-filter-pills {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pw-filter-count {
+            text-align: center;
+            justify-content: center;
+        }
+
+        .pw-filter-sep {
+            display: none;
+        }
+    }
+</style>
+
+@* ── Error Toast ────────────────────────────────────── *@
+@if (TempData["Error"] != null)
+{
+    <div id="errorToast" class="pw-toast pw-toast--error" role="alert" aria-live="assertive">
+        <i data-lucide="alert-triangle" class="pw-icon-sm" aria-hidden="true"></i>
+        @TempData["Error"]
+    </div>
+}
+
+@* ── Mini Hero ──────────────────────────────────────── *@
+<section class="pw-shop-hero" aria-label="Shop header">
+    <span class="pw-hero__float pw-hero__float--1" aria-hidden="true"><i data-lucide="carrot" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--2" aria-hidden="true"><i data-lucide="leaf" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--3" aria-hidden="true"><i data-lucide="cherry" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--4" aria-hidden="true"><i data-lucide="sprout" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--5" aria-hidden="true"><i data-lucide="wheat" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--6" aria-hidden="true"><i data-lucide="flower-2" class="pw-icon-float"></i></span>
+
+    <div class="pw-shop-hero__content">
+        <div class="pw-shop-hero__badge">
+            <span class="pw-badge pw-badge--pop">
+                <i data-lucide="sparkles" class="pw-icon-sm" aria-hidden="true"></i>
+                @availableCount products available now
+            </span>
+        </div>
+        <h1 class="pw-shop-hero__title">
+            Shop the <em>Harvest</em>
+        </h1>
+        <p class="pw-shop-hero__sub">
+            Real produce from real farms. Filter by category, producer or availability
+            and find exactly what you're looking for.
+        </p>
+    </div>
+
+    <div class="pw-hero__wave" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
+            <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#16A34A" />
+        </svg>
+    </div>
+</section>
+
+@* ── Ticker ─────────────────────────────────────────── *@
+<div class="pw-ticker" aria-hidden="true">
+    <div class="pw-ticker__track">
+        <span>Farm Fresh</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Seasonal Picks</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Small Batch</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Local Growers</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Zero Plastic</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Natasha's Law Compliant</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Next-Day Delivery</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Grown with Love</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Farm Fresh</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Seasonal Picks</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Small Batch</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Local Growers</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Zero Plastic</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Natasha's Law Compliant</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Next-Day Delivery</span><i data-lucide="star" class="pw-ticker__dot"></i>
+        <span>Grown with Love</span><i data-lucide="star" class="pw-ticker__dot"></i>
+    </div>
+</div>
+
+@* ── Producer Admin Ribbon ───────────────────────────── *@
+@if (User.IsInRole("Producer"))
+{
+    <div class="pw-admin-ribbon" role="region" aria-label="Producer management">
+        <div class="pw-admin-ribbon__inner">
+            <span class="pw-admin-ribbon__label">
+                <i data-lucide="shield-check" class="pw-icon-sm" aria-hidden="true"></i>
+                Producer Dashboard — manage your products below
+            </span>
+            <a class="pw-btn pw-btn--sm pw-btn--primary" asp-action="Create">
+                <i data-lucide="plus" class="pw-icon-sm" aria-hidden="true"></i>
+                Add Product
+            </a>
+        </div>
+    </div>
+}
+
+@* ── Filter Bar ──────────────────────────────────────── *@
+<div class="pw-filters-bar" role="search" aria-label="Filter and sort products">
+    <div class="pw-filters-inner">
+
+        <div class="pw-filter-search">
+            <i data-lucide="search" class="pw-filter-search__icon" aria-hidden="true"></i>
+            <input type="search"
+                   id="filterSearch"
+                   class="pw-filter-input"
+                   placeholder="Search products…"
+                   aria-label="Search products by name"
+                   autocomplete="off" />
+        </div>
+
+        <div class="pw-filter-sep" aria-hidden="true"></div>
+
+        <select id="filterCategory" class="pw-filter-select" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            @foreach (var cat in categories)
+            {
+                <option value="@cat.ToLower()">@cat</option>
+            }
+        </select>
+
+        <select id="filterProducer" class="pw-filter-select" aria-label="Filter by producer">
+            <option value="">All Producers</option>
+            @foreach (var prod in producers)
+            {
+                <option value="@prod.ToLower()">@prod</option>
+            }
+        </select>
+
+        <div class="pw-filter-sep" aria-hidden="true"></div>
+
+        <div class="pw-filter-pills" role="group" aria-label="Filter by availability">
+            <button type="button" class="pw-filter-pill is-active" data-avail="all" aria-pressed="true">All</button>
+            <button type="button" class="pw-filter-pill" data-avail="instock" aria-pressed="false">
+                <i data-lucide="circle-check" style="width:12px;height:12px;" aria-hidden="true"></i>
+                In Stock
+            </button>
+            <button type="button" class="pw-filter-pill" data-avail="outofstock" aria-pressed="false">
+                <i data-lucide="circle-x" style="width:12px;height:12px;" aria-hidden="true"></i>
+                Out of Stock
+            </button>
+        </div>
+
+        <div class="pw-filter-sep" aria-hidden="true"></div>
+
+        <select id="filterSort" class="pw-filter-select" aria-label="Sort products">
+            <option value="default">Sort: Default</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+            <option value="name-asc">Name: A → Z</option>
+            <option value="name-desc">Name: Z → A</option>
+        </select>
+
+        <div class="pw-filter-count" aria-live="polite" aria-atomic="true">
+            <strong id="productCount">@productList.Count</strong>
+            <span>products</span>
+        </div>
+
+        <button type="button" id="filterClear" class="pw-filter-clear" aria-label="Clear all filters">
+            <i data-lucide="x" style="width:12px;height:12px;" aria-hidden="true"></i>
+            Clear
+        </button>
+
+    </div>
+</div>
+
+@* ── Product Grid ─────────────────────────────────────── *@
+<section class="pw-shop-grid" aria-label="Products listing">
+    <div class="pw-container">
+
+        <div class="pw-grid pw-grid--3" id="productsGrid">
+
+            @foreach (var item in productList)
+            {
+                var isAvailable = item.Available;
+                var inStock = item.Available && item.QuantityInStock > 0;
+                var isLowStock = inStock && item.QuantityInStock <= 5;
+                var producerName = item.Producers?.ProducerName ?? "Local Farm";
+                var cardMod = (!isAvailable || item.QuantityInStock == 0) ? "pw-card--out" : "";
+
+                <article class="pw-card pw-card--product reveal reveal--pop @cardMod"
+                         data-product-card
+                         data-name="@item.ItemName.ToLower()"
+                         data-category="@(item.Category?.ToLower() ?? string.Empty)"
+                         data-producer="@producerName.ToLower()"
+                         data-price="@item.ItemPrice"
+                         data-instock="@inStock.ToString().ToLower()"
+                         data-available="@isAvailable.ToString().ToLower()">
+
+                    <!-- Stock status badge (top-left) -->
+                    <div class="pw-card__stock" aria-hidden="true">
+                        @if (!isAvailable)
+                        {
+                            <span class="pw-badge" style="background:#F5F5F4;color:var(--text-muted);">Unavailable</span>
+                        }
+                        else if (item.QuantityInStock == 0)
+                        {
+                            <span class="pw-badge" style="background:#FEE2E2;color:#991B1B;">Out of Stock</span>
+                        }
+                        else if (isLowStock)
+                        {
+                            <span class="pw-badge pw-badge--orange">
+                                <i data-lucide="zap" class="pw-icon-sm" aria-hidden="true"></i>
+                                Only @item.QuantityInStock left
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="pw-badge pw-badge--green">
+                                <i data-lucide="circle-check" class="pw-icon-sm" aria-hidden="true"></i>
+                                In Stock
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Product image / placeholder -->
+                    <div class="pw-card__img-wrap" aria-hidden="true">
+                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                        {
+                            <img src="@item.ImagePath" alt="" class="pw-card__photo" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="pw-card__img-placeholder">
+                                <i data-lucide="sprout" style="width:52px;height:52px;color:var(--green);opacity:.35;" aria-hidden="true"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Card body -->
+                    <div class="pw-card__body">
+
+                        <p class="pw-card__farm">
+                            <i data-lucide="map-pin" style="width:10px;height:10px;vertical-align:middle;margin-right:2px;" aria-hidden="true"></i>
+                            @producerName
+                        </p>
+
+                        <span class="pw-card__cat" aria-label="Category: @item.Category">
+                            @item.Category
+                        </span>
+
+                        <h3 class="pw-card__name">@item.ItemName</h3>
+
+                        <p class="pw-card__desc"
+                           style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">
+                            @item.Description
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(item.Allergens))
+                        {
+                            <div class="pw-card__allergens" aria-label="Allergens present">
+                                @foreach (var allergen in item.Allergens.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                {
+                                    <span class="pw-allergen-tag">@allergen.Trim()</span>
+                                }
+                            </div>
+                        }
+
+                        <div class="pw-card__footer">
+                            <span class="pw-card__price" aria-label="Price: £@item.ItemPrice.ToString("F2")">
+                                £@item.ItemPrice.ToString("F2")
+                            </span>
+                            @if (!isAvailable)
+                            {
+                                <button type="button" class="pw-btn pw-btn--sm"
+                                        style="background:var(--cream-2);color:var(--text-muted);cursor:not-allowed;"
+                                        disabled aria-disabled="true">
+                                    Unavailable
+                                </button>
+                            }
+                            else if (inStock)
+                            {
+                                <div class="pw-add-group">
+                                    <div class="pw-qty-control" role="group" aria-label="Quantity">
+                                        <button type="button" class="pw-qty-btn pw-qty-dec" aria-label="Decrease quantity">−</button>
+                                        <span class="pw-qty-display" aria-live="polite" aria-atomic="true">1</span>
+                                        <button type="button" class="pw-qty-btn pw-qty-inc" aria-label="Increase quantity">+</button>
+                                    </div>
+                                    <form class="pw-add-form" asp-controller="BasketProducts" asp-action="AddAjax" method="post" style="margin:0;">
+                                        <input type="hidden" name="ProductsId" value="@item.ProductsId" />
+                                        <input type="hidden" name="Quantity" class="pw-qty-value" value="1" />
+                                        <button type="submit" class="pw-btn pw-btn--sm pw-btn--primary pw-add-btn"
+                                                aria-label="Add @item.ItemName to basket">
+                                            <i data-lucide="plus" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                            Add
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <button type="button" class="pw-btn pw-btn--sm"
+                                        style="background:var(--cream-2);color:var(--text-muted);cursor:not-allowed;"
+                                        disabled aria-disabled="true">
+                                    Out of Stock
+                                </button>
+                            }
+                        </div>
+
+                        @if (User.IsInRole("Producer"))
+                        {
+                            <div class="pw-card__admin">
+                                <a asp-action="Details" asp-route-id="@item.ProductsId"
+                                   aria-label="View details for @item.ItemName">Details</a>
+                                <a asp-action="Edit" asp-route-id="@item.ProductsId"
+                                   aria-label="Edit @item.ItemName">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@item.ProductsId"
+                                   class="danger" aria-label="Delete @item.ItemName">Delete</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="margin-top:8px;">
+                                <a class="pw-link" asp-action="Details" asp-route-id="@item.ProductsId"
+                                   style="font-size:13px;" aria-label="View details for @item.ItemName">
+                                    View details →
+                                </a>
+                            </div>
+                        }
+
+                    </div>
+                </article>
+            }
+
+            <!-- Empty state (shown when filters return 0 results) -->
+            <div id="emptyState" class="pw-empty-state" role="status" aria-live="polite" style="grid-column:1/-1;">
+                <div class="pw-empty-icon">
+                    <i data-lucide="search-x" style="width:64px;height:64px;" aria-hidden="true"></i>
+                </div>
+                <h3 class="pw-empty-title">No products found</h3>
+                <p class="pw-empty-sub">Try adjusting your filters or clearing your search.</p>
+                <button type="button" class="pw-btn pw-btn--outline pw-btn--md" onclick="clearAllFilters()">
+                    <i data-lucide="refresh-ccw" style="width:15px;height:15px;" aria-hidden="true"></i>
+                    Reset Filters
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict';
+
+            /* ── ScrollReveal cleanup for product cards ─────────── *
+             * SR sets inline opacity/transform/visibility when it processes elements.
+             * Once the reveal animation has finished those inline styles must be cleared
+             * so that filter show/hide (display:none toggle) works cleanly and cards
+             * are never stuck invisible or misaligned after being un-hidden.
+             * We wait slightly longer than SR's own duration (600 ms) to be safe.      */
+            (function () {
+                var cards = document.querySelectorAll('[data-product-card]');
+                if (!cards.length) return;
+                setTimeout(function () {
+                    cards.forEach(function (card) {
+                        card.style.opacity    = '';
+                        card.style.transform  = '';
+                        card.style.visibility = '';
+                    });
+                }, 900); // 600 ms SR duration + 300 ms buffer
+            }());
+
+            /* ── Quantity +/− controls ──────────────────────────── */
+            document.querySelectorAll('.pw-qty-control').forEach(function (ctrl) {
+                var dec     = ctrl.querySelector('.pw-qty-dec');
+                var inc     = ctrl.querySelector('.pw-qty-inc');
+                var display = ctrl.querySelector('.pw-qty-display');
+                var group   = ctrl.closest('.pw-add-group');
+                var hidden  = group ? group.querySelector('.pw-qty-value') : null;
+
+                function getQty() { return parseInt(display.textContent) || 1; }
+                function setQty(n) {
+                    n = Math.max(1, Math.min(99, n));
+                    display.textContent = n;
+                    if (hidden) hidden.value = n;
+                }
+                if (dec) dec.addEventListener('click', function () { setQty(getQty() - 1); });
+                if (inc) inc.addEventListener('click', function () { setQty(getQty() + 1); });
+            });
+
+            /* ── Particle burst ─────────────────────────────────── */
+            function burstParticles(el) {
+                var colors = ['#16A34A','#F59E0B','#F97316','#EC4899','#8B5CF6','#4ADE80','#FEF08A','#FB923C'];
+                var r  = el.getBoundingClientRect();
+                var cx = r.left + r.width  / 2;
+                var cy = r.top  + r.height / 2;
+                for (var i = 0; i < 14; i++) {
+                    (function (i) {
+                        setTimeout(function () {
+                            var p     = document.createElement('div');
+                            var size  = 5 + Math.random() * 9;
+                            var angle = Math.random() * Math.PI * 2;
+                            var speed = 50 + Math.random() * 110;
+                            var dx    = Math.cos(angle) * speed;
+                            var dy    = Math.sin(angle) * speed - 55;
+                            p.style.cssText =
+                                'position:fixed;border-radius:50%;pointer-events:none;z-index:9999;' +
+                                'left:'   + (cx - size / 2) + 'px;' +
+                                'top:'    + (cy - size / 2) + 'px;' +
+                                'width:'  + size + 'px;height:' + size + 'px;' +
+                                'background:' + colors[Math.floor(Math.random() * colors.length)] + ';';
+                            document.body.appendChild(p);
+                            p.animate(
+                                [{ transform: 'translate(0,0) scale(1)', opacity: 1 },
+                                 { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(0)', opacity: 0 }],
+                                { duration: 550 + Math.random() * 300, easing: 'ease-out', fill: 'forwards' }
+                            ).onfinish = function () { p.remove(); };
+                        }, i * 25);
+                    }(i));
+                }
+            }
+
+            /* ── Add-to-basket toast ────────────────────────────── */
+            function escHtml(s) {
+                return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            }
+            function showAddToast(msg) {
+                var t = document.createElement('div');
+                t.className = 'pw-add-toast';
+                t.setAttribute('role', 'status');
+                t.setAttribute('aria-live', 'polite');
+                t.innerHTML = '🛒 ' + msg;
+                document.body.appendChild(t);
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () { t.classList.add('is-visible'); });
+                });
+                setTimeout(function () {
+                    t.classList.remove('is-visible');
+                    setTimeout(function () { t.remove(); }, 350);
+                }, 2800);
+            }
+
+            /* ── AJAX add to basket ─────────────────────────────── */
+            document.querySelectorAll('.pw-add-form').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    var btn      = form.querySelector('.pw-add-btn');
+                    var qtyInput = form.querySelector('.pw-qty-value');
+                    var qty      = parseInt(qtyInput ? qtyInput.value : '1') || 1;
+                    var tokenEl  = form.querySelector('[name="__RequestVerificationToken"]');
+                    var token    = tokenEl ? tokenEl.value : '';
+                    var origHTML = btn.innerHTML;
+
+                    btn.disabled  = true;
+                    btn.innerHTML = '<span class="pw-spinner"></span>';
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        },
+                        body: new URLSearchParams({
+                            ProductsId: form.querySelector('[name="ProductsId"]').value,
+                            Quantity:   qty,
+                            __RequestVerificationToken: token
+                        })
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            btn.innerHTML = '✓';
+                            btn.style.background = 'var(--green-700)';
+
+                            if (window.updateBasketBadge) window.updateBasketBadge(data.basketCount);
+                            burstParticles(btn);
+                            showAddToast(
+                                (qty > 1 ? '<strong>' + qty + '×</strong> ' : '') +
+                                escHtml(data.itemName) + ' added to basket!'
+                            );
+
+                            setTimeout(function () {
+                                btn.disabled         = false;
+                                btn.innerHTML        = origHTML;
+                                btn.style.background = '';
+                            }, 1800);
+                        } else {
+                            btn.disabled         = false;
+                            btn.innerHTML        = origHTML;
+                            btn.style.background = '#DC2626';
+                            showAddToast(escHtml(data.message || 'Could not add to basket.'));
+                            setTimeout(function () { btn.style.background = ''; }, 1800);
+                        }
+                    })
+                    .catch(function () {
+                        btn.disabled  = false;
+                        btn.innerHTML = origHTML;
+                        showAddToast('Something went wrong — please try again.');
+                    });
+                });
+            });
+
+            /* ── Filter / sort ──────────────────────────────────── */
+            var searchInput    = document.getElementById('filterSearch');
+            var categorySelect = document.getElementById('filterCategory');
+            var producerSelect = document.getElementById('filterProducer');
+            var sortSelect     = document.getElementById('filterSort');
+            var countEl        = document.getElementById('productCount');
+            var clearBtn       = document.getElementById('filterClear');
+            var emptyState     = document.getElementById('emptyState');
+            var grid           = document.getElementById('productsGrid');
+            var pills          = document.querySelectorAll('[data-avail]');
+            var activeAvail    = 'all';
+
+            function getCards() {
+                return Array.from(grid.querySelectorAll('[data-product-card]'));
+            }
+
+            function applyFilters() {
+                var search   = searchInput.value.toLowerCase().trim();
+                var category = categorySelect.value;
+                var producer = producerSelect.value;
+                var sort     = sortSelect.value;
+                var cards    = getCards();
+
+                // Sort: reorder DOM nodes before filtering
+                if (sort !== 'default') {
+                    cards.sort(function (a, b) {
+                        if (sort === 'price-asc')  return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+                        if (sort === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+                        if (sort === 'name-asc')   return a.dataset.name.localeCompare(b.dataset.name);
+                        if (sort === 'name-desc')  return b.dataset.name.localeCompare(a.dataset.name);
+                        return 0;
+                    });
+                    cards.forEach(function (c) { grid.insertBefore(c, emptyState); });
+                }
+
+                // Show/hide by filter criteria
+                var visible = 0;
+                cards.forEach(function (card) {
+                    var show = true;
+                    if (search   && !card.dataset.name.includes(search))      show = false;
+                    if (category && card.dataset.category !== category)        show = false;
+                    if (producer && card.dataset.producer !== producer)        show = false;
+                    if (activeAvail === 'instock'    && card.dataset.instock !== 'true') show = false;
+                    if (activeAvail === 'outofstock' && card.dataset.instock === 'true') show = false;
+
+                    if (show) {
+                        card.style.display = '';
+                        // ScrollReveal injects inline opacity/transform/visibility on elements it
+                        // has already processed. When a card re-appears after being filtered out
+                        // SR won't re-trigger, so we must clear those inline styles ourselves so
+                        // the card is fully visible and takes up its proper space in the grid.
+                        card.style.opacity    = '';
+                        card.style.transform  = '';
+                        card.style.visibility = '';
+                        visible++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Update count label
+                if (countEl) countEl.textContent = visible;
+
+                // Toggle empty state
+                if (emptyState) emptyState.classList.toggle('is-visible', visible === 0);
+
+                // Toggle clear button
+                var hasFilters = search || category || producer || activeAvail !== 'all' || sort !== 'default';
+                if (clearBtn) clearBtn.classList.toggle('is-visible', !!hasFilters);
+            }
+
+            // Wire up inputs
+            if (searchInput)    searchInput.addEventListener('input', applyFilters);
+            if (categorySelect) categorySelect.addEventListener('change', applyFilters);
+            if (producerSelect) producerSelect.addEventListener('change', applyFilters);
+            if (sortSelect)     sortSelect.addEventListener('change', applyFilters);
+
+            // Availability pills
+            pills.forEach(function (pill) {
+                pill.addEventListener('click', function () {
+                    pills.forEach(function (p) {
+                        p.classList.remove('is-active');
+                        p.setAttribute('aria-pressed', 'false');
+                    });
+                    this.classList.add('is-active');
+                    this.setAttribute('aria-pressed', 'true');
+                    activeAvail = this.dataset.avail;
+                    applyFilters();
+                });
+            });
+
+            // Clear — defined first so addEventListener can reference it,
+            // and exposed globally so the empty-state button's onclick can call it
+            function clearAllFilters() {
+                searchInput.value    = '';
+                categorySelect.value = '';
+                producerSelect.value = '';
+                sortSelect.value     = 'default';
+                activeAvail          = 'all';
+                pills.forEach(function (p) {
+                    var isAll = p.dataset.avail === 'all';
+                    p.classList.toggle('is-active', isAll);
+                    p.setAttribute('aria-pressed', isAll ? 'true' : 'false');
+                });
+                applyFilters();
+            }
+            window.clearAllFilters = clearAllFilters;
+
+            if (clearBtn) clearBtn.addEventListener('click', clearAllFilters);
+
+            // Sticky filter bar — track live nav height so it always sits flush below the nav
+            (function () {
+                var nav       = document.getElementById('mainNav');
+                var filterBar = document.querySelector('.pw-filters-bar');
+                if (!nav || !filterBar) return;
+                function syncTop() { filterBar.style.top = nav.offsetHeight + 'px'; }
+                syncTop();
+                window.addEventListener('scroll', syncTop, { passive: true });
+                window.addEventListener('resize', syncTop, { passive: true });
+            }());
+
+            // Auto-dismiss error toast
+            var toast = document.getElementById('errorToast');
+            if (toast) {
+                setTimeout(function () {
+                    toast.style.transition = 'opacity .5s';
+                    toast.style.opacity    = '0';
+                    setTimeout(function () { toast.remove(); }, 500);
+                }, 4000);
+            }
+
+        }());
+    </script>
+}

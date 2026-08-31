@@ -1,0 +1,11 @@
+.pw-admin-producer-card__email {
+    min-height: 18px;
+}
+
+.pw-form-errors[hidden] {
+    display: none;
+}
+
+.pw-file {
+    height: auto;
+}

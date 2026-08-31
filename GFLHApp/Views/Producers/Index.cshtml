@@ -1,0 +1,508 @@
+@model IEnumerable<GFLHApp.Models.Producers> // Bind page to a list of Producers
+
+@{
+    ViewData["Title"] = "Meet Our Growers"; // Page title
+    ViewData["FullWidth"] = true; // Enable full-width layout
+
+    var cardAccents = new[] { "--green", "--orange", "--purple", "--pop", "--green", "--orange" }; // Accent classes cycled per card
+    var floatIcons = new[] { "sprout", "leaf", "wheat", "carrot", "flower-2", "cherry" };              // Icons cycled per card sticker
+    int idx = 0; // Card index counter for cycling accents, icons and delays
+}
+
+<!-- Scroll progress bar -->
+<div id="scrollProgress" class="pw-scroll-progress" aria-hidden="true"></div> <!-- Scroll progress indicator -->
+<!-- ════════════════════════════════════════════════════
+     GROWERS INTRO  (unique — not a copy of home hero)
+════════════════════════════════════════════════════ -->
+<section class="gw-intro" aria-label="Meet our growers">
+    <!-- Intro hero section -->
+    <!-- Coloured blobs -->
+    <div class="gw-blob gw-blob--pink" aria-hidden="true"></div> <!-- Decorative pink blob -->
+    <div class="gw-blob gw-blob--lavender" aria-hidden="true"></div> <!-- Decorative lavender blob -->
+    <div class="gw-blob gw-blob--lime" aria-hidden="true"></div> <!-- Decorative lime blob -->
+    <div class="gw-blob gw-blob--peach" aria-hidden="true"></div> <!-- Decorative peach blob -->
+    <!-- Floating sticker badges -->
+    <div class="gw-sticker gw-sticker--1" aria-hidden="true">
+        <!-- Floating sticker 1 -->
+        <i data-lucide="sprout" style="width:12px;height:12px;"></i> UK Grown <!-- Sprout icon + label -->
+    </div>
+    <div class="gw-sticker gw-sticker--2" aria-hidden="true">
+        <!-- Floating sticker 2 -->
+        <i data-lucide="shield-check" style="width:12px;height:12px;"></i> Verified <!-- Shield icon + label -->
+    </div>
+    <div class="gw-sticker gw-sticker--3" aria-hidden="true">
+        <!-- Floating sticker 3 -->
+        <i data-lucide="heart" style="width:12px;height:12px;"></i> With Love <!-- Heart icon + label -->
+    </div>
+    <div class="gw-sticker gw-sticker--4" aria-hidden="true">
+        <!-- Floating sticker 4 -->
+        <i data-lucide="leaf" style="width:12px;height:12px;"></i> Seasonal <!-- Leaf icon + label -->
+    </div>
+    <div class="gw-sticker gw-sticker--5" aria-hidden="true">
+        <!-- Floating sticker 5 -->
+        <i data-lucide="sun" style="width:12px;height:12px;"></i> Fresh! <!-- Sun icon + label -->
+    </div>
+
+    <!-- Main copy -->
+    <div class="gw-intro__content">
+        <!-- Main text block -->
+        <p class="gw-intro__eyebrow">
+            <!-- Eyebrow label -->
+            <i data-lucide="users" style="width:14px;height:14px;"></i> <!-- Users icon -->
+            @Model.Count() grower@(Model.Count() != 1 ? "s" : "") on the platform <!-- Pluralised grower count -->
+        </p>
+
+        <h1 class="gw-intro__title">
+            <!-- Main hero heading -->
+            Say hello to the<br>
+            <span class="hl-green hl-squig">humans</span>   <!-- "humans" with green squiggle highlight -->
+            <span class="hl-orange"> growing</span><br>     <!-- "growing" in orange -->
+            your <span class="hl-pink">favourite</span>     <!-- "favourite" in pink -->
+            <span class="hl-purple"> things.</span>         <!-- "things." in purple -->
+        </h1>
+
+        <p class="gw-intro__sub">
+            <!-- Intro subtitle paragraph -->
+            Every item in your basket has a face behind it — a real farmer,
+            a real field, a real story. Come and meet them.
+        </p>
+
+        <div class="gw-intro__cta-row">
+            <!-- CTA button row -->
+            <a class="pw-btn pw-btn--primary pw-btn--lg" href="#growers-section">
+                <!-- Primary CTA: scroll to grid -->
+                Meet the Farmers
+            </a>
+            <a class="gw-intro__scroll-cta" href="#growers-section">
+                <!-- Secondary scroll prompt -->
+                <i data-lucide="arrow-down" style="width:15px;height:15px;"></i> <!-- Down arrow icon -->
+                Scroll to explore
+            </a>
+        </div>
+    </div>
+
+    <!-- Polaroid photo strip -->
+    <div class="gw-polaroid-strip" aria-hidden="true" role="presentation">
+        <!-- Decorative photo strip -->
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 1; data-burst triggers particle effect on hover -->
+            <img class="gw-polaroid__img" src="~/images/producers/meadowFreshOrganicFarm.jpg" alt="" loading="eager"> <!-- Farm field photo -->
+            <span class="gw-polaroid__caption">The fields ☀️</span> <!-- Caption -->
+        </div>
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 2 -->
+            <img class="gw-polaroid__img" src="~/images/home/olderLady.jpg" alt="" loading="eager"> <!-- Martha photo -->
+            <span class="gw-polaroid__caption">Martha 🌿</span> <!-- Caption -->
+        </div>
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 3 -->
+            <img class="gw-polaroid__img" src="~/images/producers/greenValleyProduce.jpg" alt="" loading="eager"> <!-- Harvest photo -->
+            <span class="gw-polaroid__caption">Fruit Frenzy</span> <!-- Caption -->
+        </div>
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 4 -->
+            <img class="gw-polaroid__img" src="~/images/home/manwalking.jpg" alt="" loading="eager"> <!-- Tom's farm photo -->
+            <span class="gw-polaroid__caption">Tom's farm 🥕</span> <!-- Caption -->
+        </div>
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 5 -->
+            <img class="gw-polaroid__img" src="~/images/producers/oakridgeHarvestHub.jpg" alt="" loading="eager"> <!-- Soil photo -->
+            <span class="gw-polaroid__caption">Platonic Planter        🌱</span> <!-- Caption -->
+        </div>
+        <div class="gw-polaroid" data-burst>
+            <!-- Polaroid 6 -->
+            <img class="gw-polaroid__img" src="~/images/home/homestrawberries.jpg" alt="" loading="eager"> <!-- Barn photo -->
+            <span class="gw-polaroid__caption">Strawberries! 🍓</span> <!-- Caption -->
+        </div>
+    </div>
+
+    <!-- Colourful topic tags -->
+    <div class="gw-tag-row" role="list" aria-label="Topics">
+        <!-- Tag row, announced as a list -->
+        <span class="gw-tag gw-tag--a" role="listitem"><i data-lucide="sun" style="width:12px;height:12px;"></i> Seasonal</span>        <!-- Seasonal tag -->
+        <span class="gw-tag gw-tag--b" role="listitem"><i data-lucide="map-pin" style="width:12px;height:12px;"></i> UK Only</span>          <!-- UK Only tag -->
+        <span class="gw-tag gw-tag--c" role="listitem"><i data-lucide="heart" style="width:12px;height:12px;"></i> Family Farms</span>     <!-- Family Farms tag -->
+        <span class="gw-tag gw-tag--d" role="listitem"><i data-lucide="sprout" style="width:12px;height:12px;"></i> Sustainable</span>      <!-- Sustainable tag -->
+        <span class="gw-tag gw-tag--e" role="listitem"><i data-lucide="package" style="width:12px;height:12px;"></i> Zero Plastic</span>     <!-- Zero Plastic tag -->
+        <span class="gw-tag gw-tag--f" role="listitem"><i data-lucide="handshake" style="width:12px;height:12px;"></i> Fair Pay</span>         <!-- Fair Pay tag -->
+        <span class="gw-tag gw-tag--g" role="listitem"><i data-lucide="leaf" style="width:12px;height:12px;"></i> Organic Options</span>  <!-- Organic Options tag -->
+        <span class="gw-tag gw-tag--h" role="listitem"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> Verified Quality</span> <!-- Verified Quality tag -->
+    </div>
+
+    <!-- Soft wave into next section -->
+    <div class="gw-intro__wave" aria-hidden="true">
+        <!-- Decorative wave transition -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
+            <!-- Wave SVG -->
+            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#F9FAFB" /> <!-- Wave path filled with next section background colour -->
+        </svg>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     GROWERS GRID
+════════════════════════════════════════════════════ -->
+<section id="growers-section" class="pw-section pw-section--cream" aria-labelledby="growers-heading">
+    <!-- Growers grid section; anchor target for CTA links -->
+    <div class="pw-container">
+        <!-- Centred container -->
+
+        <div class="pw-section__header reveal reveal--blur">
+            <!-- Section header, animates in with blur -->
+            <span class="pw-section__eyebrow">
+                <!-- Eyebrow label -->
+                <i data-lucide="users" class="pw-icon-sm"></i> <!-- Users icon -->
+                The people
+            </span>
+            <h2 class="pw-section__title" id="growers-heading">
+                <!-- Section heading -->
+                Not a supermarket.<br>
+                <em class="pw-text--green">Not even close.</em> <!-- Green emphasis -->
+            </h2>
+            <p class="pw-section__subtitle">
+                <!-- Section subtitle -->
+                Every product is traceable to a real farm, a real face, and a real story.
+            </p>
+        </div>
+
+        @if (User.IsInRole("Admin")) // Only show admin strip to admin users
+        {
+            <div class="pw-admin-strip reveal" data-delay="100">
+                <!-- Admin toolbar strip -->
+                <p class="pw-admin-strip__label">
+                    <!-- Label with producer count -->
+                    <i data-lucide="shield" class="pw-icon-sm pw-icon-green"></i> <!-- Shield icon -->
+                    <strong>Admin view</strong> — managing @Model.Count() producer@(Model.Count() != 1 ? "s" : "") <!-- Pluralised count -->
+                </p>
+                <a class="pw-btn pw-btn--primary pw-btn--sm"
+                   asp-action="Create">
+                    <!-- Link to Create action -->
+                    <i data-lucide="plus" class="pw-icon-sm"></i> <!-- Plus icon -->
+                    Add Producer
+                </a>
+            </div>
+        }
+
+        @if (Model.Any()) // Render grid if producers exist
+        {
+            <div class="pw-grid pw-grid--2 pw-producers-grid">
+                <!-- 2-column producer card grid -->
+                @foreach (var item in Model) // Loop through each producer
+                {
+                    var accentClass = cardAccents[idx % cardAccents.Length]; // Cycle accent class by index
+                    var delay = (idx % 4) * 120;                       // Staggered animation delay: 0, 120, 240, 360ms
+                    var revealDir = idx % 2 == 0 ? "reveal--left" : "reveal--right"; // Alternate reveal direction per card
+                    var floatIcon = floatIcons[idx % floatIcons.Length];   // Cycle sticker icon by index
+                    var paletteCls = "pw-card__no-photo--" + (idx % 6);     // Cycle colour palette class (0–5)
+                    var hasImage = !string.IsNullOrWhiteSpace(item.ImagePath); // Whether the producer has an image to show
+                    idx++; // Increment index for next card
+
+                    <article class="pw-card pw-card--grower pw-card--producer reveal @revealDir"
+                             data-delay="@delay"
+                             data-producer-id="@item.ProducersId">
+                        <!-- Producer card article -->
+                        <!-- Coloured icon panel (no image on Producer model — show farm icon) -->
+                        <div class="pw-card__grower-img pw-card__burst-target @(hasImage ? "pw-card__has-photo" : $"pw-card__no-photo {paletteCls}")">
+                            <!-- Coloured image panel; burst-target triggers particle effect -->
+                            @if (hasImage)
+                            {
+                                <img class="pw-card__grower-photo"
+                                     src="@item.ImagePath"
+                                     alt="@item.ProducerName"
+                                     loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="pw-card__farm-icon">
+                                    <!-- Large centred farm icon -->
+                                    <i data-lucide="warehouse" style="width:40px;height:40px;stroke:rgba(255,255,255,.92);stroke-width:1.5;"></i> <!-- Warehouse icon -->
+                                </div>
+                            }
+                            <!-- sticker sits inside the panel at top -->
+                            <div class="pw-card__sticker">
+                                <!-- Small sticker badge -->
+                                <i data-lucide="@floatIcon" style="width:10px;height:10px;"></i> <!-- Cycled icon -->
+                                Local Farm
+                            </div>
+                            <div class="pw-card__img-badge">
+                                <!-- Badge row at bottom of panel -->
+                                <span class="pw-badge pw-badge--green" style="font-size:.62rem;padding:2px 7px;">
+                                    <!-- Verified badge -->
+                                    <i data-lucide="check-circle" style="width:10px;height:10px;"></i> <!-- Check icon -->
+                                    Verified
+                                </span>
+                                @if (item.IsVATRegistered) // Only show VAT badge if registered
+                                {
+                                    <span class="pw-badge pw-badge--purple" style="font-size:.62rem;padding:2px 7px;">VAT Reg.</span> <!-- VAT registered badge -->
+                                }
+                            </div>
+                            <div class="pw-card__img-number">@idx.ToString("D2")</div> <!-- Zero-padded card number -->
+                        </div>
+
+                        <!-- Body -->
+                        <div class="pw-card__body">
+                            <!-- Card text content -->
+                            <h3 class="pw-card__producer-name">@item.ProducerName</h3> <!-- Producer name -->
+
+                            <p class="pw-card__email">
+                                <!-- Email row -->
+                                <i data-lucide="mail" class="pw-icon-sm pw-icon-muted"></i> <!-- Mail icon -->
+                                @item.ProducerEmail <!-- Producer email -->
+                            </p>
+
+                            @if (!string.IsNullOrWhiteSpace(item.ProducerInformation)) // Only show bio if one exists
+                            {
+                                <p class="pw-card__info">"@item.ProducerInformation"</p> <!-- Producer bio in quotes -->
+                            }
+
+                            <div class="pw-card__meta">
+                                <!-- Action buttons row -->
+                                <a class="pw-btn pw-btn--sm pw-btn--primary"
+                                   asp-area="" asp-controller="Products" asp-action="Index"
+                                   asp-route-producerId="@item.ProducersId"
+                                   title="Browse products by @item.ProducerName">
+                                    <!-- Link to this producer's products -->
+                                    <i data-lucide="shopping-bag" class="pw-icon-sm"></i> <!-- Bag icon -->
+                                    Their Produce
+                                </a>
+                                <a class="pw-btn pw-btn--sm pw-btn--outline"
+                                   asp-area="" asp-controller="Producers" asp-action="Details"
+                                   asp-route-id="@item.ProducersId"
+                                   title="View @item.ProducerName profile">
+                                    <!-- Link to producer detail page -->
+                                    <i data-lucide="user" class="pw-icon-sm"></i> <!-- User icon -->
+                                    View Producer
+                                </a>
+
+                                @if (User.IsInRole("Admin")) // Only show edit/delete to admins
+                                {
+                                    <div class="pw-card__admin-actions">
+                                        <!-- Admin action icon buttons -->
+                                        <a class="pw-btn pw-btn--sm pw-btn--ghost"
+                                           asp-action="Edit" asp-route-id="@item.ProducersId"
+                                           title="Edit Producer">
+                                            <!-- Edit button -->
+                                            <i data-lucide="pencil" class="pw-icon-sm"></i> <!-- Pencil icon -->
+                                        </a>
+                                        <a class="pw-btn pw-btn--sm pw-btn--ghost"
+                                           asp-action="Delete" asp-route-id="@item.ProducersId"
+                                           title="Delete Producer"
+                                           style="color:var(--danger,#DC2626);">
+                                            <!-- Delete button, red text -->
+                                            <i data-lucide="trash-2" class="pw-icon-sm"></i> <!-- Trash icon -->
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else // No producers in the model
+        {
+            <!-- Empty state -->
+            <div class="pw-empty-state reveal">
+                <!-- Empty state card -->
+                <div class="pw-empty-state__icon">
+                    <!-- Icon wrapper -->
+                    <i data-lucide="sprout" style="width:28px;height:28px;stroke:var(--green);"></i> <!-- Sprout icon -->
+                </div>
+                <h3 class="pw-empty-state__title">No growers yet</h3> <!-- Empty state heading -->
+                <p class="pw-empty-state__sub">
+                    <!-- Empty state message -->
+                    The fields are quiet for now. Be the first to join our producer family.
+                </p>
+                @if (User.IsInRole("Admin")) // Only show add button to admins
+                {
+                    <a class="pw-btn pw-btn--primary pw-btn--lg" asp-action="Create">
+                        <!-- Link to Create action -->
+                        <i data-lucide="plus" class="pw-icon-sm"></i> <!-- Plus icon -->
+                        Add First Producer
+                    </a>
+                }
+            </div>
+        }
+
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     WHY OUR FARMERS ARE WONDERFUL
+════════════════════════════════════════════════════ -->
+<section class="gw-why" aria-labelledby="why-heading">
+    <!-- Why section -->
+    <div class="gw-why__header reveal reveal--blur">
+        <!-- Section header, animates in with blur -->
+        <p class="gw-why__eyebrow">
+            <!-- Eyebrow label -->
+            <i data-lucide="heart" style="width:13px;height:13px;"></i> <!-- Heart icon -->
+            The good stuff
+        </p>
+        <h2 class="gw-why__title" id="why-heading">
+            <!-- Section heading -->
+            What makes them<br><em>so bloody wonderful</em> <!-- Italic emphasis -->
+        </h2>
+    </div>
+
+    <div class="gw-why__grid">
+        <!-- 4-card feature grid -->
+        <div class="gw-why__card gw-why__card--a reveal reveal--pop" data-delay="0">
+            <!-- Feature card 1 -->
+            <div class="gw-why__card__icon">
+                <!-- Icon wrapper -->
+                <i data-lucide="sun" style="width:28px;height:28px;stroke:#14532d;"></i> <!-- Sun icon -->
+            </div>
+            <h3 class="gw-why__card__title">Up before the sun</h3> <!-- Card heading -->
+            <p class="gw-why__card__desc">While you're still asleep, they're already in the field. That's the kind of dedication you can actually taste.</p> <!-- Card description -->
+        </div>
+
+        <div class="gw-why__card gw-why__card--b reveal reveal--pop" data-delay="120">
+            <!-- Feature card 2 -->
+            <div class="gw-why__card__icon">
+                <!-- Icon wrapper -->
+                <i data-lucide="worm" style="width:28px;height:28px;stroke:#14532d;"></i> <!-- Worm icon -->
+            </div>
+            <h3 class="gw-why__card__title">They know their soil</h3> <!-- Card heading -->
+            <p class="gw-why__card__desc">Not just what grows in it — but why. Years of listening to the land makes for food that can't be rushed.</p> <!-- Card description -->
+        </div>
+
+        <div class="gw-why__card gw-why__card--c reveal reveal--pop" data-delay="240">
+            <!-- Feature card 3 -->
+            <div class="gw-why__card__icon">
+                <!-- Icon wrapper -->
+                <i data-lucide="handshake" style="width:28px;height:28px;stroke:#365314;"></i> <!-- Handshake icon -->
+            </div>
+            <h3 class="gw-why__card__title">They keep it honest</h3> <!-- Card heading -->
+            <p class="gw-why__card__desc">No fancy packaging to hide behind. Just real people growing real things and being straight with you about it.</p> <!-- Card description -->
+        </div>
+
+        <div class="gw-why__card gw-why__card--d reveal reveal--pop" data-delay="360">
+            <!-- Feature card 4 -->
+            <div class="gw-why__card__icon">
+                <!-- Icon wrapper -->
+                <i data-lucide="leaf" style="width:28px;height:28px;stroke:#064e3b;"></i> <!-- Leaf icon -->
+            </div>
+            <h3 class="gw-why__card__title">They grow with care</h3> <!-- Card heading -->
+            <p class="gw-why__card__desc">Seasonal. Thoughtful. Never more than the land can give. Because a farm that's loved always gives more back.</p> <!-- Card description -->
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     FARM LOVE NOTES  (double-row fun-fact marquee)
+════════════════════════════════════════════════════ -->
+<div class="gw-facts" role="region" aria-label="Fun facts about our growers">
+    <!-- Fun facts marquee region -->
+    <div class="gw-facts__header">
+        <!-- Marquee header -->
+        <p class="gw-facts__label">Little things that make us happy</p> <!-- Header label -->
+    </div>
+    <div class="gw-facts__track-wrap">
+        <!-- Scrolling track wrapper -->
+        <!-- Row 1 — scrolls forward -->
+        <div class="gw-facts__row gw-facts__row--fwd" aria-hidden="true">
+            <!-- Forward-scrolling row; decorative, hidden from screen readers -->
+            <span class="gw-fact-pill gw-fact-pill--a"><i data-lucide="sunrise" class="gw-fact-pill__icon"></i> Most growers start at 5am</span>          <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--b"><i data-lucide="leaf" class="gw-fact-pill__icon"></i> Every vegetable has a personality</span>   <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--c"><i data-lucide="heart" class="gw-fact-pill__icon"></i> Soil health = your health</span>           <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--d"><i data-lucide="cloud-rain" class="gw-fact-pill__icon"></i> They genuinely love rainy days</span>      <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--e"><i data-lucide="bird" class="gw-fact-pill__icon"></i> Farms are noisier than you think</span>    <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--f"><i data-lucide="sprout" class="gw-fact-pill__icon"></i> Some seeds take 3 years to fruit</span>    <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--a"><i data-lucide="sunrise" class="gw-fact-pill__icon"></i> Most growers start at 5am</span>           <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--b"><i data-lucide="leaf" class="gw-fact-pill__icon"></i> Every vegetable has a personality</span>   <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--c"><i data-lucide="heart" class="gw-fact-pill__icon"></i> Soil health = your health</span>           <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--d"><i data-lucide="cloud-rain" class="gw-fact-pill__icon"></i> They genuinely love rainy days</span>      <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--e"><i data-lucide="bird" class="gw-fact-pill__icon"></i> Farms are noisier than you think</span>    <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--f"><i data-lucide="sprout" class="gw-fact-pill__icon"></i> Some seeds take 3 years to fruit</span>    <!-- Duplicate for seamless loop -->
+        </div>
+        <!-- Row 2 — scrolls reverse -->
+        <div class="gw-facts__row gw-facts__row--rev" aria-hidden="true">
+            <!-- Reverse-scrolling row; decorative, hidden from screen readers -->
+            <span class="gw-fact-pill gw-fact-pill--d"><i data-lucide="moon" class="gw-fact-pill__icon"></i> Harvest happens by moonlight sometimes</span> <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--e"><i data-lucide="worm" class="gw-fact-pill__icon"></i> Worms are basically co-farmers</span>         <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--a"><i data-lucide="thermometer" class="gw-fact-pill__icon"></i> Temperature matters more than water</span>    <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--c"><i data-lucide="wheat" class="gw-fact-pill__icon"></i> Ugly veg tastes better — it's science</span>  <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--f"><i data-lucide="flower-2" class="gw-fact-pill__icon"></i> Companion planting is pure magic</span>       <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--b"><i data-lucide="tractor" class="gw-fact-pill__icon"></i> No two harvests are ever the same</span>      <!-- Fact pill -->
+            <span class="gw-fact-pill gw-fact-pill--d"><i data-lucide="moon" class="gw-fact-pill__icon"></i> Harvest happens by moonlight sometimes</span> <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--e"><i data-lucide="worm" class="gw-fact-pill__icon"></i> Worms are basically co-farmers</span>         <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--a"><i data-lucide="thermometer" class="gw-fact-pill__icon"></i> Temperature matters more than water</span>    <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--c"><i data-lucide="wheat" class="gw-fact-pill__icon"></i> Ugly veg tastes better — it's science</span>  <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--f"><i data-lucide="flower-2" class="gw-fact-pill__icon"></i> Companion planting is pure magic</span>       <!-- Duplicate for seamless loop -->
+            <span class="gw-fact-pill gw-fact-pill--b"><i data-lucide="tractor" class="gw-fact-pill__icon"></i> No two harvests are ever the same</span>      <!-- Duplicate for seamless loop -->
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     FIND YOUR FARMER  (speech-bubble CTA)
+════════════════════════════════════════════════════ -->
+<section class="gw-cta" aria-labelledby="farmer-cta-heading">
+    <!-- CTA section -->
+    <div class="gw-cta__blob-a" aria-hidden="true"></div> <!-- Decorative blob A -->
+    <div class="gw-cta__blob-b" aria-hidden="true"></div> <!-- Decorative blob B -->
+
+    <div class="gw-cta__inner">
+        <!-- Inner content wrapper -->
+        <div class="gw-cta__bubble reveal reveal--pop">
+            <!-- Speech-bubble card, animates in with pop -->
+            <!-- Mini farmer avatar row -->
+            <div class="gw-cta__farmers-row" aria-hidden="true">
+                <!-- Decorative avatar row -->
+                <div class="gw-cta__farmer-avatar">
+                    <!-- Photo avatar -->
+                    <img src="~/images/home/olderLady.jpg" alt=""> <!-- Martha photo -->
+                </div>
+                <div class="gw-cta__farmer-avatar" style="background:#fef08a;color:#713f12;">T</div> <!-- Initial avatar: T -->
+                <div class="gw-cta__farmer-avatar" style="background:#ddd6fe;color:#4c1d95;">S</div> <!-- Initial avatar: S -->
+                <div class="gw-cta__farmer-avatar" style="background:#fed7aa;color:#7c2d12;">R</div> <!-- Initial avatar: R -->
+                <div class="gw-cta__farmer-avatar">
+                    <!-- Photo avatar -->
+                    <img src="~/images/home/manwalking.jpg" alt=""> <!-- Tom photo -->
+                </div>
+            </div>
+
+            <h2 class="gw-cta__bubble-text" id="farmer-cta-heading">
+                <!-- Bubble heading -->
+                Your perfect farmer is<br>probably <em>on this page</em> right now. <!-- Italic emphasis -->
+            </h2>
+            <p class="gw-cta__bubble-sub">
+                <!-- Bubble subtext -->
+                Scroll back up. Pick someone whose story resonates. Then buy their things.
+            </p>
+        </div>
+
+        <div class="gw-cta__actions reveal" data-delay="160">
+            <!-- CTA button row -->
+            <a class="pw-btn pw-btn--primary pw-btn--xl"
+               asp-area="" asp-controller="Products" asp-action="Index">
+                <!-- Link to all products -->
+                <i data-lucide="shopping-bag" class="pw-icon-sm"></i> <!-- Bag icon -->
+                Shop Their Produce
+            </a>
+            <a class="pw-btn pw-btn--outline pw-btn--xl" href="#growers-section">
+                <!-- Scroll back to grid -->
+                <i data-lucide="arrow-up" class="pw-icon-sm"></i> <!-- Up arrow icon -->
+                Back to the Farmers
+            </a>
+        </div>
+
+        <p class="gw-cta__bubble-sub reveal" style="margin-top:1.5rem;font-size:.82rem;" data-delay="260">
+            <!-- Small reassurance text -->
+            No subscription · No commitment · Just great food from real people
+        </p>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/producers/ProducersIndex.css" />
+}
+
+@section Scripts {
+    <script src="~/js/pages/producers/ProducersIndex.js"></script>
+}

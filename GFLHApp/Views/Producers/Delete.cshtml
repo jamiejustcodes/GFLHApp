@@ -1,0 +1,227 @@
+@model GFLHApp.Models.Producers
+@{
+    ViewData["Title"] = "Delete — " + Model.ProducerName;
+    ViewData["FullWidth"] = true;
+    var initial     = string.IsNullOrWhiteSpace(Model.ProducerName) ? "?" : Model.ProducerName[0].ToString().ToUpper();
+    var productCount = Model.Products?.Count() ?? 0;
+}
+
+<div class="pw-del-page">
+
+    <!-- ── Header ──────────────────────────────────── -->
+    <div class="pw-del-header">
+        <div class="pw-del-header__inner">
+            <nav aria-label="Breadcrumb">
+                <ol class="pw-del-breadcrumb">
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Producers" asp-action="Index">Growers</a></li>
+                    <li><a asp-controller="Producers" asp-action="Details" asp-route-id="@Model.ProducersId">@Model.ProducerName</a></li>
+                    <li><span aria-current="page">Delete</span></li>
+                </ol>
+            </nav>
+            <div class="pw-del-header__title">
+                <div class="pw-del-header__icon" aria-hidden="true">
+                    <i data-lucide="trash-2" style="width:20px;height:20px;stroke-width:2"></i>
+                </div>
+                <div>
+                    <h1>Delete producer</h1>
+                    <p>This action is permanent and cannot be undone</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pw-del-body">
+
+        <!-- ── Producer summary card ──────────────── -->
+        <section aria-label="Producer details">
+            <div class="pw-del-summary">
+                <div class="pw-del-summary__hero">
+                    <div class="pw-del-summary__avatar" aria-hidden="true">@initial</div>
+                    <div class="pw-del-summary__info">
+                        <p class="pw-del-summary__name">@Model.ProducerName</p>
+                        <p class="pw-del-summary__email">
+                            <i data-lucide="mail" style="width:13px;height:13px;"></i>
+                            @Model.ProducerEmail
+                        </p>
+                        <div class="pw-del-summary__pills">
+                            <span class="pw-del-summary__pill">
+                                <i data-lucide="package" style="width:11px;height:11px;"></i>
+                                @productCount product@(productCount != 1 ? "s" : "")
+                            </span>
+							@if (Model.IsVATRegistered) // Only show VAT registration pill if producer is registered, otherwise it may cause confusion
+                            {
+								// VAT registration is an important status indicator for producers, so we show it as a pill in the summary section. However, we only show this pill if the producer is actually registered to avoid confusion or misinterpretation of missing information as a loading error. If they are registered, we display the pill prominently with an icon to make it easily identifiable at a glance.
+                                <span class="pw-del-summary__pill">
+                                    <i data-lucide="receipt" style="width:11px;height:11px;"></i>
+                                    VAT Registered
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pw-del-summary__body">
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--green">
+                            <i data-lucide="user" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Producer name</span>
+                            <span class="pw-del-row__value">@Model.ProducerName</span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--green">
+                            <i data-lucide="mail" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Email address</span>
+                            <span class="pw-del-row__value">
+                                <a href="mailto:@Model.ProducerEmail">@Model.ProducerEmail</a>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--muted">
+                            <i data-lucide="align-left" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">Bio / description</span>
+							@if (!string.IsNullOrWhiteSpace(Model.ProducerInformation)) // Only show bio if it exists, otherwise show muted placeholder text to indicate it's optional and not missing due to a loading error
+                            {
+								// We allow basic HTML in the producer bio for formatting, so we render it as raw HTML. We trust this content because only admin users can edit it, and we ensure that any HTML entered is sanitized to prevent XSS attacks while still allowing safe formatting options like paragraphs, line breaks, and links.
+                                <span class="pw-del-row__value">@Model.ProducerInformation</span>
+                            }
+							else // No bio provided, show muted placeholder text to indicate it's optional and not missing due to a loading error
+                            {
+							// Since the producer bio is an optional field, we want to avoid showing an empty space if it's not provided, which could be misinterpreted as a loading error. Instead, we display a muted placeholder message to clearly indicate that no bio has been provided for this producer. This helps set the right expectation for users and maintains a consistent layout even when optional information is missing.
+                                <span class="pw-del-row__value pw-del-row__value--muted">No bio provided.</span>
+                            }
+                        </div>
+                    </div>
+
+					@if (Model.IsVATRegistered) // Only show VAT number if producer is registered, otherwise it may cause confusion
+                    {
+						// VAT number is only relevant if producer is registered, so we check this before showing the row. If they are registered but no number is provided, we show a specific message to indicate that it's not missing due to a loading error and that there is simply no number on file.
+                        <div class="pw-del-row"> 
+                            <div class="pw-del-row__icon pw-del-row__icon--yellow">
+                                <i data-lucide="receipt" style="width:16px;height:16px;stroke-width:2"></i>
+                            </div>
+                            <div class="pw-del-row__content">
+                                <span class="pw-del-row__label">VAT number</span>
+                                <span class="pw-del-row__value">
+                                    @(string.IsNullOrWhiteSpace(Model.VATNumber) ? "Registered — no number on file" : Model.VATNumber)
+                                </span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="pw-del-row">
+                        <div class="pw-del-row__icon pw-del-row__icon--purple">
+                            <i data-lucide="hash" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div class="pw-del-row__content">
+                            <span class="pw-del-row__label">System ID</span>
+                            <span class="pw-del-row__value" style="font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;">#@Model.ProducersId</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Impact warning ───────────────────────── -->
+        <div class="pw-del-impact" role="alert">
+            <div class="pw-del-impact__header">
+                <i data-lucide="triangle-alert" style="width:18px;height:18px;color:#9A3412;stroke-width:2;flex-shrink:0"></i>
+                <h2>What will be permanently deleted</h2>
+            </div>
+            <div class="pw-del-impact__body">
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    The <strong>@Model.ProducerName</strong> producer profile and all associated data
+                </div>
+				@if (productCount > 0) // Only show linked product listing impact if there are products, otherwise it may cause confusion or be perceived as a loading error
+                {
+					// Since linked product listings are a significant part of the producer's presence on the platform, we want to clearly communicate that these will also be deleted when the producer is removed. However, we only show this impact item if there are actually products linked to the producer to avoid confusion or misinterpretation of missing information as a loading error. If there are linked products, we display the count prominently in bold to make it clear how many listings will be affected by this action.
+                    <div class="pw-del-impact__item">
+                        <span class="pw-del-impact__item-dot"></span>
+                        <strong>@productCount product listing@(productCount != 1 ? "s" : "")</strong> linked to this producer
+                    </div>
+                }
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    All order history and fulfilment records for this producer
+                </div>
+                <div class="pw-del-impact__item">
+                    <span class="pw-del-impact__item-dot"></span>
+                    The linked user account connection (user account itself is preserved)
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Danger confirm form ──────────────────── -->
+        <div class="pw-del-confirm">
+            <div class="pw-del-confirm__header">
+                <div class="pw-del-confirm__icon-box" aria-hidden="true">
+                    <i data-lucide="shield-alert" style="width:20px;height:20px;stroke-width:2"></i>
+                </div>
+                <div>
+                    <h2>Confirm deletion</h2>
+                    <p>Check the box below to enable the delete button</p>
+                </div>
+            </div>
+            <div class="pw-del-confirm__body">
+                <label class="pw-del-checkbox-row" for="confirmDelete">
+                    <input type="checkbox" id="confirmDelete" aria-describedby="confirmDeleteDesc" />
+                    <span class="pw-del-checkbox-row__text" id="confirmDeleteDesc">
+                        I understand that deleting <strong>@Model.ProducerName</strong> is permanent.
+                        This will remove the producer profile@(productCount > 0 ? $" and {productCount} associated product listing{(productCount != 1 ? "s" : "")}" : "") and cannot be recovered.
+                    </span>
+                </label>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="ProducersId" />
+                    <div class="pw-del-actions">
+                        <a asp-action="Details" asp-route-id="@Model.ProducersId" class="pw-btn-cancel">
+                            <i data-lucide="arrow-left" style="width:15px;height:15px;" aria-hidden="true"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="pw-btn-delete" id="deleteBtn" disabled aria-disabled="true">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;" aria-hidden="true"></i>
+                            Delete permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/pages/producers/ProducersDelete.css" />
+}
+
+@section Scripts {
+<script>
+(function () {
+			if (window.lucide) lucide.createIcons(); // Initialize lucide icons in case they haven't been rendered yet (e.g. if using partial views or dynamic content)
+
+    /* Enable delete button only when checkbox is ticked */
+			var checkbox  = document.getElementById('confirmDelete'); // Get the confirmation checkbox element
+			var deleteBtn = document.getElementById('deleteBtn'); // Get the delete button element
+
+			if (checkbox && deleteBtn) { // Check if both elements exist to avoid errors
+				checkbox.addEventListener('change', function () { // Add event listener for when the checkbox state changes
+					var ready = checkbox.checked; // Determine if the checkbox is checked (true) or not (false)
+					deleteBtn.disabled = !ready; // Enable the delete button if ready is true, otherwise disable it
+					deleteBtn.setAttribute('aria-disabled', String(!ready)); // Update aria-disabled attribute for accessibility to reflect the current state of the button
+                    deleteBtn.classList.toggle('is-ready', ready); 
+        });
+    }
+}());
+</script>
+}

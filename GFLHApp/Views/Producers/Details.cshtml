@@ -1,0 +1,390 @@
+@model GFLHApp.Models.Producers // Bind page to the Producers model
+
+@{
+    ViewData["Title"] = Model.ProducerName; // Set page title to producer's name
+    ViewData["FullWidth"] = true; // Enable full-width layout
+
+    var products = Model.Products?.ToList() ?? new List<GFLHApp.Models.Products>(); // Materialise list to avoid multiple enumeration
+    var productCount = products.Count; // Total number of products
+    var availCount = products.Count(p => p.Available && p.QuantityInStock > 0); // Number of products currently in stock
+    var initial = string.IsNullOrWhiteSpace(Model.ProducerName) ? "?" : Model.ProducerName[0].ToString().ToUpper(); // First letter for avatar display
+
+    // Returns a lucide icon name based on product category keyword
+    string CategoryIcon(string cat) => (cat ?? "").ToLower() switch
+    {
+        var c when c.Contains("veg") => "carrot",    // Vegetables
+        var c when c.Contains("fruit") => "cherry",    // Fruit
+        var c when c.Contains("dairy") => "milk",      // Dairy
+        var c when c.Contains("meat") => "beef",      // Meat
+        var c when c.Contains("bread") => "wheat",     // Bread/bakery
+        var c when c.Contains("drink") => "cup-soda",  // Drinks
+        _ => "package"                                 // Default fallback
+    };
+
+    // Soft green gradients cycled as fallback backgrounds on product cards with no image
+    var prodGradients = new[]
+    {
+        "linear-gradient(135deg,#dcfce7,#86efac)", // Soft mint
+        "linear-gradient(135deg,#bbf7d0,#4ade80)", // Bright mint
+        "linear-gradient(135deg,#a7f3d0,#34d399)", // Teal
+        "linear-gradient(135deg,#d9f99d,#86efac)", // Lime
+        "linear-gradient(135deg,#6ee7b7,#10b981)", // Fresh green
+        "linear-gradient(135deg,#ecfdf5,#6ee7b7)"  // Light mint
+    };
+}
+
+
+<div id="scrollProgress" class="pw-scroll-progress" aria-hidden="true"></div> <!-- Scroll progress bar -->
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════ -->
+<section class="pd-hero" aria-label="Producer profile hero">
+    <!-- Hero section -->
+    <div class="pd-hero__blob pd-hero__blob--a" aria-hidden="true"></div> <!-- Decorative blob A -->
+    <div class="pd-hero__blob pd-hero__blob--b" aria-hidden="true"></div> <!-- Decorative blob B -->
+    <div class="pd-hero__blob pd-hero__blob--c" aria-hidden="true"></div> <!-- Decorative blob C -->
+
+    <span class="pd-hero__float pd-hero__float--1" aria-hidden="true"><i data-lucide="sprout"></i></span>    <!-- Floating sprout icon -->
+    <span class="pd-hero__float pd-hero__float--2" aria-hidden="true"><i data-lucide="leaf"></i></span>      <!-- Floating leaf icon -->
+    <span class="pd-hero__float pd-hero__float--3" aria-hidden="true"><i data-lucide="wheat"></i></span>     <!-- Floating wheat icon -->
+    <span class="pd-hero__float pd-hero__float--4" aria-hidden="true"><i data-lucide="flower-2"></i></span>  <!-- Floating flower icon -->
+
+    <div style="position:relative;z-index:3;">
+        <!-- Content sits above decorative elements -->
+        <a class="pd-hero__breadcrumb" asp-action="Index">
+            <!-- Back link to producers list -->
+            <i data-lucide="arrow-left"></i> <!-- Back arrow icon -->
+            Back to all growers
+        </a>
+
+        <div class="pd-hero__avatar" aria-hidden="true">@initial</div> <!-- Avatar showing producer's initial -->
+
+        <h1 class="pd-hero__name">@Model.ProducerName</h1> <!-- Producer name heading -->
+
+        <div class="pd-hero__badges">
+            <!-- Badge row -->
+            <span class="pd-hero__pill pd-hero__pill--green">
+                <!-- Verified partner badge -->
+                <i data-lucide="check-circle" style="width:13px;height:13px;"></i> <!-- Check icon -->
+                Verified Partner
+            </span>
+            @if (Model.IsVATRegistered) // Only show VAT badge if producer is VAT registered
+            {
+                <span class="pd-hero__pill pd-hero__pill--yellow">
+                    <!-- VAT registered badge -->
+                    <i data-lucide="receipt" style="width:13px;height:13px;"></i> <!-- Receipt icon -->
+                    VAT Registered
+                </span>
+            }
+            <span class="pd-hero__pill">
+                <!-- Product count badge -->
+                <i data-lucide="package" style="width:13px;height:13px;"></i> <!-- Package icon -->
+                @productCount product@(productCount != 1 ? "s" : "") <!-- Pluralised product count -->
+            </span>
+        </div>
+
+        <a class="pd-hero__email" href="mailto:@Model.ProducerEmail">
+            <!-- Mailto link -->
+            <i data-lucide="mail" style="width:15px;height:15px;"></i> <!-- Mail icon -->
+            @Model.ProducerEmail <!-- Producer email address -->
+        </a>
+    </div>
+
+    <div class="pd-hero__wave" aria-hidden="true">
+        <!-- Decorative wave transition -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+            <!-- Wave SVG -->
+            <path d="M0,35 C360,70 1080,0 1440,35 L1440,70 L0,70 Z" fill="#f0fdf4" /> <!-- Wave path filled with page background colour -->
+        </svg>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     BODY  (about + quick facts)
+════════════════════════════════════════════════════════ -->
+<div class="pd-body">
+    <!-- Main body wrapper -->
+    <div class="pd-body__grid">
+        <!-- Two-column grid: about + facts -->
+        <!-- About -->
+        <div class="pd-about reveal reveal--left">
+            <!-- About card, animates in from the left -->
+            <p class="pd-about__eyebrow">
+                <!-- Section label -->
+                <i data-lucide="user" style="width:12px;height:12px;"></i> <!-- User icon -->
+                About this grower
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.ProducerInformation)) // Show bio if one exists
+            {
+                <p class="pd-about__text">@Model.ProducerInformation</p> <!-- Producer bio -->
+            }
+            else // Friendly placeholder when no bio has been added
+            {
+                <p class="pd-about__empty">This grower hasn't added a bio yet — but their produce speaks for itself.</p> <!-- Empty state message -->
+            }
+        </div>
+
+        <!-- Quick facts sidebar -->
+        <div class="pd-facts reveal reveal--right">
+            <!-- Facts column, animates in from the right -->
+
+            <div class="pd-fact-card">
+                <!-- Email fact card -->
+                <div class="pd-fact-card__icon pd-fact-card__icon--green">
+                    <!-- Green icon wrapper -->
+                    <i data-lucide="mail" style="width:20px;height:20px;stroke:#15803d;"></i> <!-- Mail icon -->
+                </div>
+                <div class="pd-fact-card__body">
+                    <!-- Card text content -->
+                    <p class="pd-fact-card__label">Email</p> <!-- Label -->
+                    <p class="pd-fact-card__value">
+                        <a href="mailto:@Model.ProducerEmail">@Model.ProducerEmail</a> <!-- Clickable email -->
+                    </p>
+                </div>
+            </div>
+
+            <div class="pd-fact-card">
+                <!-- Products listed fact card -->
+                <div class="pd-fact-card__icon pd-fact-card__icon--lime">
+                    <!-- Lime icon wrapper -->
+                    <i data-lucide="warehouse" style="width:20px;height:20px;stroke:#365314;"></i> <!-- Warehouse icon -->
+                </div>
+                <div class="pd-fact-card__body">
+                    <!-- Card text content -->
+                    <p class="pd-fact-card__label">Products Listed</p> <!-- Label -->
+                    <p class="pd-fact-card__value">@productCount item@(productCount != 1 ? "s" : "")</p> <!-- Pluralised count -->
+                </div>
+            </div>
+
+            <div class="pd-fact-card">
+                <!-- Available now fact card -->
+                <div class="pd-fact-card__icon pd-fact-card__icon--teal">
+                    <!-- Teal icon wrapper -->
+                    <i data-lucide="shopping-bag" style="width:20px;height:20px;stroke:#065f46;"></i> <!-- Shopping bag icon -->
+                </div>
+                <div class="pd-fact-card__body">
+                    <!-- Card text content -->
+                    <p class="pd-fact-card__label">Available Now</p> <!-- Label -->
+                    <p class="pd-fact-card__value">@availCount in stock</p> <!-- In-stock count -->
+                </div>
+            </div>
+
+            @if (Model.IsVATRegistered && !string.IsNullOrWhiteSpace(Model.VATNumber)) // Only show VAT card if registered and number exists
+            {
+                <div class="pd-fact-card">
+                    <!-- VAT number fact card -->
+                    <div class="pd-fact-card__icon pd-fact-card__icon--mint">
+                        <!-- Mint icon wrapper -->
+                        <i data-lucide="receipt" style="width:20px;height:20px;stroke:#065f46;"></i> <!-- Receipt icon -->
+                    </div>
+                    <div class="pd-fact-card__body">
+                        <!-- Card text content -->
+                        <p class="pd-fact-card__label">VAT Number</p> <!-- Label -->
+                        <p class="pd-fact-card__value">@Model.VATNumber</p> <!-- VAT number value -->
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="pd-stats-strip">
+        <!-- Animated stats bar -->
+        <div class="pd-stat-tile reveal reveal--pop" data-delay="0">
+            <!-- Products tile -->
+            <p class="pd-stat-tile__value" data-target="@productCount" data-suffix="">@productCount</p> <!-- Animated counter target -->
+            <p class="pd-stat-tile__label">Products Listed</p> <!-- Tile label -->
+        </div>
+        <div class="pd-stat-tile reveal reveal--pop" data-delay="100">
+            <!-- In-stock tile -->
+            <p class="pd-stat-tile__value" data-target="@availCount" data-suffix="">@availCount</p> <!-- Animated counter target -->
+            <p class="pd-stat-tile__label">In Stock</p> <!-- Tile label -->
+        </div>
+        <div class="pd-stat-tile reveal reveal--pop" data-delay="200">
+            <!-- VAT status tile -->
+            <p class="pd-stat-tile__value" data-target="@(Model.IsVATRegistered ? 1 : 0)" data-suffix="">
+                @(Model.IsVATRegistered ? "Yes" : "No") <!-- Yes/No based on VAT registration -->
+            </p>
+            <p class="pd-stat-tile__label">VAT Registered</p> <!-- Tile label -->
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin")) // Only render admin controls for admin users
+    {
+        <div class="pd-admin-bar reveal">
+            <!-- Admin toolbar -->
+            <p class="pd-admin-bar__label">
+                <!-- Toolbar label -->
+                <i data-lucide="shield" style="width:13px;height:13px;stroke:#15803d;"></i> <!-- Shield icon -->
+                Admin controls
+            </p>
+            <a class="pw-btn pw-btn--sm pw-btn--outline"
+               asp-action="Edit" asp-route-id="@Model.ProducersId">
+                <!-- Edit button -->
+                <i data-lucide="pencil" class="pw-icon-sm"></i> <!-- Pencil icon -->
+                Edit Producer
+            </a>
+            <a class="pw-btn pw-btn--sm pw-btn--ghost"
+               asp-action="Delete" asp-route-id="@Model.ProducersId"
+               style="color:#DC2626;">
+                <!-- Delete button, red text -->
+                <i data-lucide="trash-2" class="pw-icon-sm"></i> <!-- Trash icon -->
+                Delete
+            </a>
+        </div>
+    }
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PRODUCE FROM THIS PRODUCER
+════════════════════════════════════════════════════════ -->
+<section class="pd-produce" aria-labelledby="produce-heading">
+    <!-- Products section -->
+    <div class="pw-container">
+        <!-- Centred container -->
+
+        <div class="pw-section__header reveal reveal--blur">
+            <!-- Section header, animates in with blur -->
+            <span class="pw-section__eyebrow" style="color:#15803d;">
+                <!-- Eyebrow label -->
+                <i data-lucide="sprout" class="pw-icon-sm"></i> <!-- Sprout icon -->
+                Straight from the source
+            </span>
+            <h2 class="pw-section__title" id="produce-heading">
+                <!-- Section heading -->
+                Produce from<br>
+                <em class="pw-text--green">@Model.ProducerName</em> <!-- Producer name in green -->
+            </h2>
+            @if (productCount > 0) // Only show subtitle if there are products
+            {
+                <p class="pw-section__subtitle">
+                    <!-- Product count summary -->
+                    @productCount product@(productCount != 1 ? "s" : "") listed · @availCount available now <!-- Pluralised counts -->
+                </p>
+            }
+        </div>
+
+        @if (products.Any()) // Render product grid if products exist
+        {
+            <div class="pw-grid pw-grid--3">
+                <!-- 3-column product grid -->
+                @{
+                    int pi = 0;
+                } <!-- Product index for gradient/delay cycling -->
+                @foreach (var p in products) // Loop through each product
+                {
+                    var grad = prodGradients[pi % prodGradients.Length]; // Pick gradient by index
+                    var icon = CategoryIcon(p.Category);                 // Icon based on category
+                    var delay = (pi % 3) * 120;                           // Staggered delay: 0, 120, 240ms
+                    var inStock = p.Available && p.QuantityInStock > 0;     // Whether product is in stock
+                    pi++; // Increment index for next card
+
+                    <article class="pd-product-card reveal reveal--pop" data-delay="@delay">
+                        <!-- Product card -->
+
+                        <div class="pd-product-card__img-wrap">
+                            <!-- Image/fallback wrapper -->
+                            @if (!string.IsNullOrWhiteSpace(p.ImagePath)) // Show image if path exists
+                            {
+                                <img class="pd-product-card__img"
+                                     src="@p.ImagePath"
+                                     alt="@p.ItemName"
+                                     loading="lazy"> <!-- Lazy-loaded product image -->
+                            }
+                            else // No image — show gradient + category icon instead
+                            {
+                                <div class="pd-product-card__no-img" style="background:@grad;">
+                                    <!-- Gradient fallback -->
+                                    <i data-lucide="@icon"></i> <!-- Category icon -->
+                                </div>
+                            }
+
+                            <div class="pd-product-card__badge">
+                                <!-- Stock status badge -->
+                                @if (!inStock) // Out of stock
+                                {
+                                    <span class="pw-badge pw-badge--orange">Out of Stock</span> <!-- Out-of-stock badge -->
+                                }
+                                else if (p.QuantityInStock <= 5) // Low stock threshold
+                                {
+                                    <span class="pw-badge pw-badge--orange">
+                                        <!-- Low-stock badge -->
+                                        <i data-lucide="zap" class="pw-icon-sm"></i> <!-- Zap icon -->
+                                        Low Stock
+                                    </span>
+                                }
+                                else // Plenty in stock
+                                {
+                                    <span class="pw-badge pw-badge--green">In Stock</span> <!-- In-stock badge -->
+                                }
+                            </div>
+                        </div>
+
+                        <div class="pd-product-card__body">
+                            <!-- Card text content -->
+                            <p class="pd-product-card__category">@p.Category</p>   <!-- Category label -->
+                            <h3 class="pd-product-card__name">@p.ItemName</h3>     <!-- Product name -->
+                            <p class="pd-product-card__desc">@p.Description</p>    <!-- Short description -->
+
+                            <div class="pd-product-card__footer">
+                                <!-- Price + action row -->
+                                <div>
+                                    <span class="pd-product-card__price">£@p.ItemPrice.ToString("0.00")</span> <!-- Formatted price -->
+                                    <span class="pd-product-card__stock"> · @p.QuantityInStock left</span>     <!-- Remaining stock -->
+                                </div>
+                                <a class="pw-btn pw-btn--sm pw-btn--primary"
+                                   asp-area="" asp-controller="Products" asp-action="Details"
+                                   asp-route-id="@p.ProductsId"
+                                   aria-label="View @p.ItemName">
+                                    <!-- Link to product details page -->
+                                    View →
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <div class="pw-section__cta reveal" data-delay="200">
+                <!-- CTA below product grid -->
+                <a class="pw-btn pw-btn--outline pw-btn--lg"
+                   asp-area="" asp-controller="Products" asp-action="Index"
+                   asp-route-producerId="@Model.ProducersId">
+                    <!-- Link to all products filtered by this producer -->
+                    See all @productCount product@(productCount != 1 ? "s" : "") from @Model.ProducerName → <!-- Pluralised label -->
+                </a>
+            </div>
+        }
+        else // No products listed yet
+        {
+            <!-- Empty state -->
+            <div class="pw-empty-state reveal" style="background:#fff;border-color:#d1fae5;">
+                <!-- Empty state card -->
+                <div class="pw-empty-state__icon" style="background:#dcfce7;">
+                    <!-- Icon wrapper -->
+                    <i data-lucide="package" style="width:28px;height:28px;stroke:#15803d;"></i> <!-- Package icon -->
+                </div>
+                <h3 class="pw-empty-state__title">No produce listed yet</h3> <!-- Empty state heading -->
+                <p class="pw-empty-state__sub">
+                    @Model.ProducerName hasn't added any products yet. Check back soon — good things take time to grow. <!-- Empty state message -->
+                </p>
+                <a class="pw-btn pw-btn--outline pw-btn--lg" asp-action="Index">
+                    <!-- Back to growers CTA -->
+                    Browse other growers →
+                </a>
+            </div>
+        }
+
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/producers/ProducersDetails.css" /> 
+}
+
+@section Scripts {
+    <script src="~/js/pages/producers/ProducersDetails.js"></script>
+}

@@ -1,0 +1,236 @@
+@model GFLHApp.Models.Producers // Bind page to the Producers model
+@{
+    ViewData["Title"] = "Edit — " + Model.ProducerName; // Page title includes producer name
+    ViewData["FullWidth"] = true; // Enable full-width layout
+    var initial = string.IsNullOrWhiteSpace(Model.ProducerName) ? "?" : Model.ProducerName[0].ToString().ToUpper(); // First letter for avatar display
+}
+
+<div class="pw-admin-page">
+    <!-- Outer admin page wrapper -->
+
+    <div class="pw-admin-header">
+        <!-- Page header bar -->
+        <div class="pw-admin-header__inner">
+            <!-- Centred inner wrapper -->
+            <nav aria-label="Breadcrumb">
+                <!-- Breadcrumb navigation -->
+                <ol class="pw-admin-breadcrumb">
+                    <!-- Ordered breadcrumb list -->
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li> <!-- Home crumb -->
+                    <li><a asp-controller="Producers" asp-action="Index">Growers</a></li> <!-- Producers list crumb -->
+                    <li><a asp-controller="Producers" asp-action="Details" asp-route-id="@Model.ProducersId">@Model.ProducerName</a></li> <!-- This producer's detail crumb -->
+                    <li><span aria-current="page">Edit</span></li> <!-- Current page crumb -->
+                </ol>
+            </nav>
+            <div class="pw-admin-header__title">
+                <!-- Title row -->
+                <div class="pw-admin-header__icon" aria-hidden="true">
+                    <!-- Icon wrapper -->
+                    <i data-lucide="user-pen" style="width:20px;height:20px;stroke-width:2"></i> <!-- User-pen icon -->
+                </div>
+                <div>
+                    <h1>Edit producer</h1> <!-- Page heading -->
+                    <p>@Model.ProducerName</p> <!-- Subheading showing producer name -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pw-admin-body">
+        <!-- Two-column body: preview + form -->
+        <!-- ── Left: sticky producer preview ─────────── -->
+        <div class="pw-admin-img-col" aria-hidden="true">
+            <!-- Preview column, hidden from screen readers -->
+            <div class="pw-admin-img-card" id="adminImgCard">
+                @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" alt="@Model.ProducerName" id="adminImgEl" />
+                }
+                else
+                {
+                    <div class="pw-admin-img-placeholder" id="adminImgEl">
+                        <i data-lucide="sprout" style="width:72px;height:72px;opacity:.45;"></i>
+                    </div>
+                }
+                <div class="pw-admin-img-meta">
+                    <p class="pw-admin-img-meta__name" id="adminImgName">@Model.ProducerName</p>
+                    <p class="pw-admin-img-meta__path" id="adminImgPath">
+                        @(string.IsNullOrWhiteSpace(Model.ImagePath) ? "no image set" : Model.ImagePath)
+                    </p>
+                </div>
+            </div>
+
+            <div class="pw-admin-producer-card" id="previewCard" style="margin-top:18px;">
+                <!-- Live preview card -->
+                <div class="pw-admin-producer-card__hero">
+                    <!-- Card hero section -->
+                    <div class="pw-admin-producer-card__avatar" id="previewAvatar">@initial</div> <!-- Avatar initial, updated live by JS -->
+                    <p class="pw-admin-producer-card__name" id="previewName">@Model.ProducerName</p> <!-- Producer name, updated live by JS -->
+                    <p class="pw-admin-producer-card__email" id="previewEmail">
+                        <!-- Email row -->
+                        <i data-lucide="mail" style="width:12px;height:12px;"></i> <!-- Mail icon -->
+                        <span id="previewEmailText">@Model.ProducerEmail</span> <!-- Email text, updated live by JS -->
+                    </p>
+                    <span class="pw-admin-producer-card__vat @(Model.IsVATRegistered ? "is-visible" : "")" id="previewVat">
+                        <!-- VAT badge; visible if registered -->
+                        <i data-lucide="receipt" style="width:11px;height:11px;"></i> <!-- Receipt icon -->
+                        VAT Registered
+                    </span>
+                </div>
+                <div class="pw-admin-producer-card__meta">
+                    <!-- Card meta section -->
+                    <div class="pw-admin-producer-card__row">
+                        <!-- Info row -->
+                        <div class="pw-admin-producer-card__row-icon">
+                            <!-- Row icon wrapper -->
+                            <i data-lucide="info" style="width:14px;height:14px;stroke-width:2"></i> <!-- Info icon -->
+                        </div>
+                        <div>
+                            <span class="pw-admin-producer-card__row-label">About</span> <!-- Row label -->
+                            <span class="pw-admin-producer-card__row-value" id="previewInfo">
+                                @(string.IsNullOrWhiteSpace(Model.ProducerInformation) ? "No bio yet." : Model.ProducerInformation) <!-- Bio or fallback text, updated live by JS -->
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: form ────────────────────────────── -->
+        <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editProducerForm" novalidate>
+            <!-- Edit form, posts to Edit action -->
+            <input type="hidden" asp-for="ProducersId" /> <!-- Hidden: preserve producer ID -->
+            <input type="hidden" asp-for="UserId" /> <!-- Hidden: preserve associated user ID -->
+            <input type="hidden" name="existingImagePath" value="@Model.ImagePath" />
+
+            <div class="pw-form-card">
+                <!-- Form card wrapper -->
+
+                <div asp-validation-summary="ModelOnly" class="pw-form-errors" hidden></div> <!-- Model-level validation errors, shown by JS if present -->
+                <!-- Identity -->
+                <div class="pw-form-section">
+                    <!-- Identity section -->
+                    <p class="pw-form-section__label">Identity</p> <!-- Section label -->
+                    <div class="pw-field">
+                        <!-- Field wrapper -->
+                        <label asp-for="ProducerName">Producer / business name <span class="pw-field__req" aria-hidden="true">*</span></label> <!-- Required field label -->
+                        <input asp-for="ProducerName" class="pw-input" id="liveNameInput"
+                               placeholder="e.g. Green Valley Farm" autocomplete="organization" /> <!-- Name input, wired to live preview -->
+                        <span asp-validation-for="ProducerName" class="pw-field__error"></span> <!-- Inline validation message -->
+                    </div>
+                </div>
+
+                <!-- Contact -->
+                <div class="pw-form-section">
+                    <!-- Contact section -->
+                    <p class="pw-form-section__label">Contact</p> <!-- Section label -->
+                    <div class="pw-field">
+                        <!-- Field wrapper -->
+                        <label asp-for="ProducerEmail">Email address <span class="pw-field__req" aria-hidden="true">*</span></label> <!-- Required field label -->
+                        <input asp-for="ProducerEmail" class="pw-input" id="liveEmailInput"
+                               type="email" placeholder="hello@example.com" autocomplete="email" /> <!-- Email input, wired to live preview -->
+                        <span asp-validation-for="ProducerEmail" class="pw-field__error"></span> <!-- Inline validation message -->
+                        <span class="pw-field__hint">Used for order notifications and grower communications.</span> <!-- Helper hint -->
+                    </div>
+                </div>
+
+                <!-- About -->
+                <div class="pw-form-section">
+                    <!-- About section -->
+                    <p class="pw-form-section__label">About</p> <!-- Section label -->
+                    <div class="pw-field">
+                        <!-- Field wrapper -->
+                        <label asp-for="ProducerInformation">Bio / description</label> <!-- Optional field label -->
+                        <textarea asp-for="ProducerInformation" class="pw-textarea" id="liveInfoInput"
+                                  placeholder="Tell customers about your farm, growing practices, certifications…"
+                                  rows="5"></textarea> <!-- Bio textarea, wired to live preview -->
+                        <span asp-validation-for="ProducerInformation" class="pw-field__error"></span> <!-- Inline validation message -->
+                        <span class="pw-field__hint">Shown on the public producer page. Supports line breaks.</span> <!-- Helper hint -->
+                    </div>
+                </div>
+
+                <div class="pw-form-section">
+                    <p class="pw-form-section__label">Image</p>
+                    <div class="pw-form-row">
+                        <div class="pw-field">
+                            <label for="imageUpload">Upload a new image</label>
+                            <input type="file" id="imageUpload" name="imageUpload" class="pw-file" accept=".jpg,.jpeg,.png,.webp" />
+                            <span class="pw-field__hint">Upload a JPG, PNG, or WebP image up to 5 MB. Files save to /images/producers.</span>
+                            <span class="pw-field__error">@Html.ValidationMessage("imageUpload")</span>
+                        </div>
+
+                        <div class="pw-field">
+                            <label asp-for="ImagePath">Or choose an existing producer image</label>
+                            <select asp-for="ImagePath" class="pw-select" id="liveImageInput" asp-items="ViewBag.ExistingImages">
+                                <option value="">Keep current image / no existing image selected</option>
+                            </select>
+                            <span asp-validation-for="ImagePath" class="pw-field__error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VAT / Business details -->
+                <div class="pw-form-section">
+                    <!-- Business & tax section -->
+                    <p class="pw-form-section__label">Business &amp; Tax</p> <!-- Section label -->
+
+                    <div class="pw-toggle-row">
+                        <!-- Toggle row layout -->
+                        <div class="pw-toggle-row__info">
+                            <!-- Toggle description -->
+                            <strong>VAT registered</strong> <!-- Toggle title -->
+                            <span>Enables VAT display on receipts and producer profile.</span> <!-- Toggle description -->
+                        </div>
+                        <label class="pw-toggle" aria-label="Toggle VAT registration">
+                            <!-- Toggle label wrapper -->
+                            <input asp-for="IsVATRegistered" type="checkbox" role="switch" id="vatToggle" /> <!-- VAT checkbox, wired to JS toggle -->
+                            <span class="pw-toggle__track" aria-hidden="true"></span> <!-- Visual toggle track -->
+                        </label>
+                    </div>
+
+                    <div class="pw-vat-field @(Model.IsVATRegistered ? "is-open" : "")" id="vatNumberField">
+                        <!-- VAT number field; open if already registered -->
+                        <div class="pw-field">
+                            <!-- Field wrapper -->
+                            <label asp-for="VATNumber">VAT number</label> <!-- Field label -->
+                            <input asp-for="VATNumber" class="pw-input"
+                                   placeholder="e.g. GB123456789"
+                                   autocomplete="off"
+                                   style="font-family:'JetBrains Mono','Courier New',monospace;letter-spacing:.05em;" /> <!-- Monospace input for VAT number readability -->
+                            <span asp-validation-for="VATNumber" class="pw-field__error"></span> <!-- Inline validation message -->
+                            <span class="pw-field__hint">Format: GB followed by 9 digits.</span> <!-- Helper hint -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="pw-form-actions">
+                    <!-- Form action buttons row -->
+                    <a asp-action="Details" asp-route-id="@Model.ProducersId" class="pw-btn-back">
+                        <!-- Cancel / back link -->
+                        <i data-lucide="arrow-left" style="width:15px;height:15px;" aria-hidden="true"></i> <!-- Arrow icon -->
+                        Back
+                    </a>
+                    <button type="submit" class="pw-btn-save">
+                        <!-- Submit button -->
+                        <i data-lucide="check" style="width:15px;height:15px;" aria-hidden="true"></i> <!-- Check icon -->
+                        Save changes
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/producers/ProducersEdit.css" />
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/producers/ProducersEdit.js"></script>
+}

@@ -1,0 +1,225 @@
+﻿@model GFLHApp.Models.Orders
+
+@{
+    ViewData["Title"] = "Order Details";
+    ViewData["FullWidth"] = true;
+
+    var orderProducts = Model?.OrderProducts ?? new List<GFLHApp.Models.OrderProducts>();
+    var productCount = orderProducts.Sum(item => item.ProductQuantity);
+    var formattedId = Model == null ? "" : $"#{Model.OrdersId:D6}";
+    var fulfilmentLabel = Model?.Delivery == true ? "Delivery" : "Collection";
+    var fulfilmentDetail = Model?.Delivery == true
+        ? (string.IsNullOrWhiteSpace(Model.DeliveryMethod) ? "Delivery details being prepared" : Model.DeliveryMethod)
+        : (Model?.DateOfCollection.HasValue == true ? Model.DateOfCollection.Value.ToString("dd MMMM yyyy") : "Collection date to be confirmed");
+
+    var statusClass = Model?.TrackingStatus switch
+    {
+        "Delivered" => "pw-badge--green",
+        "Awaiting Confirmation" => "pw-badge--purple",
+        "Preparing Delivery" => "pw-badge--orange",
+        _ => "pw-badge--yellow"
+    };
+
+    var statusIcon = Model?.TrackingStatus switch
+    {
+        "Delivered" => "check-circle",
+        "Awaiting Confirmation" => "clock",
+        "Preparing Delivery" => "truck",
+        _ => "package"
+    };
+}
+
+@if (Model == null)
+{
+    <main class="od-page od-page--empty">
+        <section class="od-empty">
+            <span class="od-empty__icon" aria-hidden="true">
+                <i data-lucide="package-x"></i>
+            </span>
+            <h1>We could not find that order.</h1>
+            <p>It may have moved, or you may not have access to view it.</p>
+            <a class="pw-btn pw-btn--primary pw-btn--lg" asp-action="Index">
+                <i data-lucide="clipboard-list" class="pw-icon-sm" aria-hidden="true"></i>
+                Back to Orders
+            </a>
+        </section>
+    </main>
+}
+else
+{
+    <section class="od-hero" aria-labelledby="order-details-title">
+        <span class="od-hero__float od-hero__float--1"><i data-lucide="leaf" aria-hidden="true"></i></span>
+        <span class="od-hero__float od-hero__float--2"><i data-lucide="package-check" aria-hidden="true"></i></span>
+        <span class="od-hero__float od-hero__float--3"><i data-lucide="sprout" aria-hidden="true"></i></span>
+
+        <div class="od-hero__inner">
+            <a class="od-back-link reveal" asp-action="Index">
+                <i data-lucide="arrow-left" aria-hidden="true"></i>
+                Orders
+            </a>
+            <span class="pw-badge @statusClass reveal">
+                <i data-lucide="@statusIcon" class="pw-icon-sm" aria-hidden="true"></i>
+                @Model.TrackingStatus
+            </span>
+            <h1 id="order-details-title" class="od-hero__title reveal">Your order is in good hands.</h1>
+            <p class="od-hero__sub reveal">
+                Thanks for choosing Greenfield. Here is every detail we have for @formattedId,
+                from the items selected to the care notes for getting it to you.
+            </p>
+        </div>
+
+        <div class="od-hero__wave" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+                <path d="M0,35 C260,72 480,6 720,34 C980,65 1180,10 1440,35 L1440,70 L0,70 Z" fill="#FFFBEB" />
+            </svg>
+        </div>
+    </section>
+
+    <main class="od-page" aria-label="Order detail content">
+        <div class="od-shell">
+            <section class="od-summary reveal" aria-label="Order at a glance">
+                <div class="od-summary__item">
+                    <span>Order reference</span>
+                    <strong>@formattedId</strong>
+                </div>
+                <div class="od-summary__item">
+                    <span>Ordered on</span>
+                    <strong>@Model.OrderDate.ToString("dd MMM yyyy")</strong>
+                </div>
+                <div class="od-summary__item">
+                    <span>Items</span>
+                    <strong>@productCount item@(productCount == 1 ? "" : "s")</strong>
+                </div>
+                <div class="od-summary__item od-summary__item--total">
+                    <span>Total</span>
+                    <strong>&pound;@Model.OrdersTotal.ToString("0.00")</strong>
+                </div>
+            </section>
+
+            <div class="od-grid">
+                <section class="od-panel reveal" aria-labelledby="items-heading">
+                    <div class="od-panel__header">
+                        <span class="od-panel__icon"><i data-lucide="shopping-basket" aria-hidden="true"></i></span>
+                        <div>
+                            <span class="od-panel__eyebrow">Picked for you</span>
+                            <h2 id="items-heading">Order contents</h2>
+                        </div>
+                    </div>
+
+                    @if (!orderProducts.Any())
+                    {
+                        <p class="od-muted">No items are attached to this order yet.</p>
+                    }
+                    else
+                    {
+                        <div class="od-items" role="table" aria-label="Items in @formattedId">
+                            <div class="od-items__row od-items__row--head" role="row">
+                                <span role="columnheader">Product</span>
+                                <span role="columnheader">Qty</span>
+                                <span role="columnheader">Unit price</span>
+                                <span role="columnheader">Line total</span>
+                            </div>
+                            @foreach (var item in orderProducts)
+                            {
+                                var itemName = item.Products?.ItemName ?? "Item";
+                                var itemPrice = item.Products?.ItemPrice ?? 0m;
+                                <div class="od-items__row" role="row">
+                                    <span role="cell">@itemName</span>
+                                    <span role="cell">@item.ProductQuantity</span>
+                                    <span role="cell">&pound;@itemPrice.ToString("0.00")</span>
+                                    <span role="cell">&pound;@((itemPrice * item.ProductQuantity).ToString("0.00"))</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+
+                <aside class="od-panel od-panel--side reveal" aria-labelledby="journey-heading">
+                    <div class="od-panel__header">
+                        <span class="od-panel__icon od-panel__icon--warm"><i data-lucide="route" aria-hidden="true"></i></span>
+                        <div>
+                            <span class="od-panel__eyebrow">Order journey</span>
+                            <h2 id="journey-heading">@fulfilmentLabel</h2>
+                        </div>
+                    </div>
+
+                    <div class="od-status-card">
+                        <span class="od-status-card__pill">
+                            <span aria-hidden="true"></span>
+                            @Model.TrackingStatus
+                        </span>
+                        <p>@fulfilmentDetail</p>
+                    </div>
+
+                    <dl class="od-detail-list">
+                        <div>
+                            <dt>Fulfilment</dt>
+                            <dd>@fulfilmentLabel</dd>
+                        </div>
+                        @if (Model.Delivery)
+                        {
+                            <div>
+                                <dt>Delivery address</dt>
+                                <dd>
+                                    @Model.DeliveryLine1<br />
+                                    @if (!string.IsNullOrWhiteSpace(Model.DeliveryLine2))
+                                    {
+                                        @Model.DeliveryLine2
+                                    
+                                        <br />
+                                    }
+                                    @Model.DeliveryCity<br />
+                                    @Model.DeliveryPostcode?.ToUpper()
+                                </dd>
+                            </div>
+                        }
+                        <div>
+                            <dt>Billing address</dt>
+                            <dd>
+                                @Model.BillingLine1<br />
+                                @if (!string.IsNullOrWhiteSpace(Model.BillingLine2))
+                                {
+                                    @Model.BillingLine2
+                                
+                                    <br />
+                                }
+                                @Model.BillingCity<br />
+                                @Model.BillingPostcode.ToUpper()
+                            </dd>
+                        </div>
+                    </dl>
+                </aside>
+            </div>
+
+            <section class="od-care reveal" aria-label="Customer care note">
+                <i data-lucide="hand-heart" aria-hidden="true"></i>
+                <div>
+                    <strong>We value your order.</strong>
+                    <p>
+                        Every order supports local growers directly. If anything does not look right,
+                        keep your order reference nearby and we will help put it right.
+                    </p>
+                </div>
+            </section>
+
+            <div class="od-actions reveal">
+                <a class="pw-btn pw-btn--primary pw-btn--lg" asp-action="Index">
+                    <i data-lucide="clipboard-list" class="pw-icon-sm" aria-hidden="true"></i>
+                    Back to Orders
+                </a>
+                <a class="pw-btn pw-btn--ghost pw-btn--lg" asp-controller="Products" asp-action="Index">
+                    <i data-lucide="sprout" class="pw-icon-sm" aria-hidden="true"></i>
+                    Shop Again
+                </a>
+            </div>
+        </div>
+    </main>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/orders/OrdersDetails.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/pages/orders/OrdersDetails.js" asp-append-version="true"></script>
+}

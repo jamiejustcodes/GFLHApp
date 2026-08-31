@@ -1,0 +1,1064 @@
+@model IEnumerable<GFLHApp.Models.Orders>
+
+@{
+    ViewData["Title"] = "Your Orders";
+    ViewData["FullWidth"] = true;
+    var isAdmin    = User.IsInRole("Admin");
+    var isProducer = User.IsInRole("Producer");
+    var ordersList = Model.ToList();
+    var totalOrders  = ordersList.Count;
+    var activeOrders = ordersList.Count(o => o.TrackingStatus != "Delivered");
+    var totalSpend   = ordersList.Sum(o => o.OrdersTotal);
+    // Controller grants free delivery when orderCount % 3 == 2.
+    // So: 0 orders → 2 away, 1 order → 1 away, 2 orders → free now.
+    var remainder = totalOrders % 3;
+    var nextFreeDeliveryIn = (remainder == 2) ? 0 : (2 - remainder);
+}
+
+<style>
+/* ════════════════════════════════════════════
+   ORDERS PAGE — scoped styles
+   ════════════════════════════════════════════ */
+
+/* ── Hero ──────────────────────────────────── */
+.pw-orders-hero {
+    background: linear-gradient(140deg, var(--cream-3) 0%, #E9FAF0 55%, var(--green-100) 100%);
+    padding: 130px 0 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.pw-orders-hero__inner {
+    padding-bottom: 64px;
+    position: relative;
+    z-index: 2;
+}
+
+.pw-orders-hero__badge { margin-bottom: 22px; }
+
+.pw-orders-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 68px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -.03em;
+    margin: 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pw-orders-hero__sub {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 440px;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* Entrance animations matching home page */
+.pw-orders-hero__badge  { animation: hero-up .70s cubic-bezier(.16,1,.3,1) both .10s; }
+.pw-orders-hero__title  { animation: hero-up .80s cubic-bezier(.16,1,.3,1) both .24s; }
+.pw-orders-hero__sub    { animation: hero-up .80s cubic-bezier(.16,1,.3,1) both .44s; }
+
+/* ── Stats Bar ─────────────────────────────── */
+.pw-orders-stats {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+}
+
+.pw-orders-stats__inner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 4px 0;
+}
+
+.pw-orders-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 36px;
+}
+
+.pw-orders-stat__value {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    display: block;
+}
+
+.pw-orders-stat__label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    display: block;
+    margin-top: 4px;
+}
+
+.pw-orders-stat__divider {
+    width: 1px;
+    height: 44px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.pw-orders-stat__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.pw-orders-stat__icon--cream  { background: var(--cream-2); }
+.pw-orders-stat__icon--orange { background: var(--orange-100); }
+.pw-orders-stat__icon--green  { background: var(--green-100); }
+.pw-orders-stat__icon--purple { background: var(--purple-100); }
+
+/* ── Toolbar ────────────────────────────────── */
+.pw-orders-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding: 18px 22px;
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 72px;
+    z-index: 100;
+}
+
+.pw-orders-search {
+    position: relative;
+    flex: 1;
+    min-width: 160px;
+    max-width: 240px;
+}
+
+.pw-orders-search__icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    color: var(--text-light);
+    pointer-events: none;
+    stroke-width: 2;
+}
+
+.pw-orders-search__input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-full);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--cream);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.pw-orders-search__input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(22,163,74,.1);
+}
+
+.pw-orders-search__input::placeholder { color: var(--text-light); }
+
+.pw-orders-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.pw-orders-sort__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.pw-orders-sort__select {
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-full);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--white);
+    cursor: pointer;
+    outline: none;
+    transition: border-color .15s;
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.pw-orders-sort__select:focus { border-color: var(--green); }
+
+.pw-orders-filters {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.pw-orders-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px;
+    border-radius: var(--r-full);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+}
+
+.pw-orders-filter-btn:hover {
+    border-color: var(--green-200);
+    color: var(--text);
+    background: var(--green-100);
+}
+
+.pw-orders-filter-btn.is-active {
+    background: var(--green);
+    color: var(--white);
+    border-color: var(--green);
+    box-shadow: 0 4px 12px rgba(22,163,74,.25);
+}
+
+.pw-orders-filter-btn:focus-visible {
+    outline: 3px solid var(--green);
+    outline-offset: 2px;
+}
+
+/* ── Results count ──────────────────────────── */
+.pw-orders-count {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 20px;
+    font-weight: 500;
+}
+
+.pw-orders-count strong { color: var(--text); font-weight: 700; }
+
+/* ── Orders list ────────────────────────────── */
+.pw-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Order Card ─────────────────────────────── */
+.pw-order-card {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    position: relative;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.pw-order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0,0,0,.10), 0 4px 16px rgba(22,163,74,.06);
+    border-color: var(--green-200);
+}
+
+/* Top accent stripe */
+.pw-order-card__accent {
+    height: 5px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.pw-order-card--pending   .pw-order-card__accent { background: linear-gradient(90deg, var(--yellow), #FCD34D); }
+.pw-order-card--preparing .pw-order-card__accent { background: linear-gradient(90deg, var(--orange), #FB923C); }
+.pw-order-card--awaiting  .pw-order-card__accent { background: linear-gradient(90deg, var(--purple), #A78BFA); }
+.pw-order-card--delivered .pw-order-card__accent { background: linear-gradient(90deg, var(--green), #4ADE80); }
+
+.pw-order-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 10px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pw-order-card__header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.pw-order-card__id {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: -.02em;
+}
+
+.pw-order-card__total {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+.pw-order-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 24px 16px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.pw-order-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+}
+
+.pw-order-card__meta-sep { color: var(--text-light); }
+
+.pw-order-card__meta-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+.pw-order-card__user-id {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--cream-2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--text-muted);
+}
+
+/* Items row */
+.pw-order-card__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 24px 14px;
+    border-top: 1.5px dashed var(--border);
+}
+
+.pw-order-card__item-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    padding: 4px 12px;
+    border-radius: var(--r-full);
+    transition: background .15s;
+}
+
+.pw-order-card__item-pill:hover { background: var(--green-100); border-color: var(--green-200); }
+
+.pw-order-card__item-more {
+    color: var(--text-muted);
+    background: transparent;
+    border-style: dashed;
+    font-weight: 500;
+}
+
+/* Address snippet */
+.pw-order-card__address {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 24px 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Footer / actions */
+.pw-order-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-top: 1.5px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--cream);
+    margin-top: auto;
+}
+
+.pw-order-card__actions-primary,
+.pw-order-card__actions-secondary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Danger ghost variant */
+.pw-btn--danger {
+    color: #DC2626;
+    border-color: #FECACA;
+    background: transparent;
+}
+
+.pw-btn--danger:hover {
+    background: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #B91C1C;
+}
+
+/* ── Empty state ────────────────────────────── */
+.pw-orders-empty {
+    text-align: center;
+    padding: 80px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.pw-orders-empty__icon {
+    width: 88px;
+    height: 88px;
+    background: var(--cream-2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    border: 2px solid var(--yellow-100);
+}
+
+.pw-orders-empty__title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.025em;
+}
+
+.pw-orders-empty__desc {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 360px;
+    margin: 0;
+    line-height: 1.65;
+}
+
+/* ── Reduced motion ─────────────────────────── */
+@@media (prefers-reduced-motion: reduce) {
+    .pw-orders-hero__badge,
+    .pw-orders-hero__title,
+    .pw-orders-hero__sub {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .pw-order-card { transition: none !important; }
+}
+
+/* ── Responsive ─────────────────────────────── */
+@@media (max-width: 900px) {
+    .pw-orders-hero { padding: 120px 0 0; }
+    .pw-orders-stat { padding: 14px 24px; }
+}
+
+@@media (max-width: 768px) {
+    .pw-orders-hero { padding: 110px 0 0; }
+    .pw-orders-hero__sub { font-size: 16px; }
+
+    .pw-orders-stats__inner { flex-direction: row; flex-wrap: wrap; }
+    .pw-orders-stat__divider { display: none; }
+    .pw-orders-stat { padding: 12px 20px; }
+
+    .pw-orders-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        top: 64px;
+        gap: 10px;
+    }
+    .pw-orders-search { max-width: 100%; }
+    .pw-orders-filters { margin-left: 0; }
+
+    .pw-order-card__header { padding: 16px 18px 8px; }
+    .pw-order-card__meta   { padding: 4px 18px 12px; }
+    .pw-order-card__items  { padding: 10px 18px 12px; }
+    .pw-order-card__address{ padding: 0 18px 10px; }
+    .pw-order-card__footer { padding: 12px 18px; flex-direction: column; align-items: flex-start; }
+    .pw-order-card__total  { font-size: 22px; }
+}
+
+@@media (max-width: 480px) {
+    .pw-orders-stat__value { font-size: 20px; }
+    .pw-orders-filter-btn  { font-size: 12px; padding: 6px 12px; }
+}
+</style>
+
+<!-- ═══════════════════════════════════════════
+     SCROLL PROGRESS
+════════════════════════════════════════════ -->
+<div id="scrollProgress" class="pw-scroll-progress" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE HERO
+════════════════════════════════════════════ -->
+<section class="pw-orders-hero" aria-label="Orders header">
+    <span class="pw-hero__float pw-hero__float--1" aria-hidden="true"><i data-lucide="package" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--2" aria-hidden="true"><i data-lucide="truck" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--4" aria-hidden="true"><i data-lucide="leaf" class="pw-icon-float"></i></span>
+    <span class="pw-hero__float pw-hero__float--6" aria-hidden="true"><i data-lucide="check-circle" class="pw-icon-float"></i></span>
+
+    <div class="pw-container pw-orders-hero__inner">
+        <div class="pw-orders-hero__badge">
+            <span class="pw-badge pw-badge--pop">
+                <i data-lucide="receipt-text" class="pw-icon-sm"></i>
+                @(isAdmin ? "Admin — All Orders" : isProducer ? "Producer Dashboard" : "Order History")
+            </span>
+        </div>
+        <h1 class="pw-orders-hero__title">
+            <span>@(isAdmin ? "Order" : isProducer ? "Your" : "Your")</span>
+            <span class="pw-text--green">@(isAdmin ? "Dashboard" : isProducer ? "Orders" : "Orders")</span>
+        </h1>
+        <p class="pw-orders-hero__sub">
+            @if (isAdmin)
+            {
+                <text>Every order across every customer — all in one place.</text>
+            }
+            else if (isProducer)
+            {
+                <text>Orders containing your produce, tracked and managed.</text>
+            }
+            else
+            {
+                <text>Track deliveries, confirm arrivals, and relive the freshness.</text>
+            }
+        </p>
+    </div>
+
+    <div class="pw-hero__wave" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
+            <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#FFFFFF" />
+        </svg>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STATS BAR
+════════════════════════════════════════════ -->
+<div class="pw-orders-stats reveal" role="region" aria-label="Order summary statistics">
+    <div class="pw-container">
+        <div class="pw-orders-stats__inner">
+
+            <div class="pw-orders-stat">
+                <div class="pw-orders-stat__icon pw-orders-stat__icon--cream">
+                    <i data-lucide="layers" class="pw-icon-sm pw-icon-muted"></i>
+                </div>
+                <div>
+                    <span class="pw-orders-stat__value">@totalOrders</span>
+                    <span class="pw-orders-stat__label">Total Orders</span>
+                </div>
+            </div>
+
+            <div class="pw-orders-stat__divider" aria-hidden="true"></div>
+
+            <div class="pw-orders-stat">
+                <div class="pw-orders-stat__icon pw-orders-stat__icon--orange">
+                    <i data-lucide="clock" class="pw-icon-sm pw-icon-orange"></i>
+                </div>
+                <div>
+                    <span class="pw-orders-stat__value">@activeOrders</span>
+                    <span class="pw-orders-stat__label">Active</span>
+                </div>
+            </div>
+
+            <div class="pw-orders-stat__divider" aria-hidden="true"></div>
+
+            <div class="pw-orders-stat">
+                <div class="pw-orders-stat__icon pw-orders-stat__icon--green">
+                    <i data-lucide="banknote" class="pw-icon-sm pw-icon-green"></i>
+                </div>
+                <div>
+                    <span class="pw-orders-stat__value">£@totalSpend.ToString("0.00")</span>
+                    <span class="pw-orders-stat__label">Total Spent</span>
+                </div>
+            </div>
+
+            @if (!isAdmin && !isProducer)
+            {
+                <div class="pw-orders-stat__divider" aria-hidden="true"></div>
+                <div class="pw-orders-stat">
+                    <div class="pw-orders-stat__icon pw-orders-stat__icon--purple">
+                        <i data-lucide="gift" class="pw-icon-sm pw-icon-purple"></i>
+                    </div>
+                    <div>
+                        <span class="pw-orders-stat__value">
+                            @(nextFreeDeliveryIn == 0
+                                ? "Next order!"
+                                : nextFreeDeliveryIn + " away")
+                        </span>
+                        <span class="pw-orders-stat__label">Free Delivery</span>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<section class="pw-section pw-section--white" aria-labelledby="orders-heading">
+    <div class="pw-container">
+
+        <h2 id="orders-heading" class="sr-only">Orders list</h2>
+
+        <!-- ─── Filter & Sort Toolbar ─── -->
+        <div class="pw-orders-toolbar reveal" role="search" aria-label="Filter and sort orders">
+
+            <!-- Search -->
+            <div class="pw-orders-search">
+                <svg class="pw-orders-search__icon" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" id="ordersSearch" class="pw-orders-search__input"
+                       placeholder="Search order #…" aria-label="Search by order number"
+                       autocomplete="off">
+            </div>
+
+            <!-- Sort -->
+            <div class="pw-orders-sort">
+                <label for="ordersSort" class="pw-orders-sort__label">
+                    <i data-lucide="arrow-up-down" class="pw-icon-sm"></i>
+                    Sort
+                </label>
+                <select id="ordersSort" class="pw-orders-sort__select" aria-label="Sort orders">
+                    <option value="newest">Most Recent</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Value</option>
+                    <option value="lowest">Lowest Value</option>
+                </select>
+            </div>
+
+            <!-- Status Filter Chips -->
+            <div class="pw-orders-filters" role="group" aria-label="Filter by status">
+                <button class="pw-orders-filter-btn is-active" data-filter="all" type="button">All</button>
+                <button class="pw-orders-filter-btn" data-filter="Pending" type="button">
+                    <i data-lucide="package" class="pw-icon-sm"></i> Pending
+                </button>
+                <button class="pw-orders-filter-btn" data-filter="Preparing Delivery" type="button">
+                    <i data-lucide="truck" class="pw-icon-sm"></i> Preparing
+                </button>
+                <button class="pw-orders-filter-btn" data-filter="Awaiting Confirmation" type="button">
+                    <i data-lucide="clock" class="pw-icon-sm"></i> Awaiting
+                </button>
+                <button class="pw-orders-filter-btn" data-filter="Delivered" type="button">
+                    <i data-lucide="check-circle" class="pw-icon-sm"></i> Delivered
+                </button>
+            </div>
+        </div>
+
+        <!-- Results count -->
+        <p class="pw-orders-count" id="ordersCount" aria-live="polite">
+            Showing <strong id="ordersCountNum">@ordersList.Count</strong>
+            order@(ordersList.Count != 1 ? "s" : "")
+        </p>
+
+        <!-- ─── Order Cards ─── -->
+        @if (!ordersList.Any())
+        {
+            <div class="pw-orders-empty reveal" role="status">
+                <div class="pw-orders-empty__icon" aria-hidden="true">
+                    <i data-lucide="package-open" style="width:36px;height:36px;stroke-width:1.5;color:var(--text-light)"></i>
+                </div>
+                <h2 class="pw-orders-empty__title">No orders yet</h2>
+                <p class="pw-orders-empty__desc">
+                    When you place an order it'll appear here.<br>Go find something fresh!
+                </p>
+                <a asp-area="" asp-controller="Products" asp-action="Index"
+                   class="pw-btn pw-btn--primary pw-btn--lg">
+                    <i data-lucide="sprout" class="pw-icon-sm"></i>
+                    Shop the Harvest
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="pw-orders-list" id="ordersList" aria-label="Your orders">
+
+                @foreach (var order in ordersList.OrderByDescending(o => o.OrderDate))
+                {
+                    var statusBadge = order.TrackingStatus switch {
+                        "Delivered"             => "pw-badge--green",
+                        "Awaiting Confirmation" => "pw-badge--purple",
+                        "Preparing Delivery"    => "pw-badge--orange",
+                        _                       => "pw-badge--yellow"
+                    };
+                    var cardAccent = order.TrackingStatus switch {
+                        "Delivered"             => "pw-order-card--delivered",
+                        "Awaiting Confirmation" => "pw-order-card--awaiting",
+                        "Preparing Delivery"    => "pw-order-card--preparing",
+                        _                       => "pw-order-card--pending"
+                    };
+                    var statusIcon = order.TrackingStatus switch {
+                        "Delivered"             => "check-circle",
+                        "Awaiting Confirmation" => "clock",
+                        "Preparing Delivery"    => "truck",
+                        _                       => "package"
+                    };
+                    var itemCount       = order.OrderProducts?.Count ?? 0;
+                    var formattedId     = $"#PF-{order.OrdersId:D6}";
+                    var daysSinceOrder  = (DateTime.Now - order.OrderDate.ToDateTime(TimeOnly.MinValue)).TotalDays;
+                    var autoDelivered   = order.DeliveryConfirmed || daysSinceOrder >= 7;
+                    var canConfirm      = order.Delivery && !autoDelivered && order.TrackingStatus == "Awaiting Confirmation";
+
+                    <article class="pw-order-card @cardAccent reveal"
+                             data-status="@order.TrackingStatus"
+                             data-method="@(order.Delivery ? "delivery" : "collection")"
+                             data-date="@order.OrderDate.ToString("yyyy-MM-dd")"
+                             data-value="@order.OrdersTotal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+                             data-id="@order.OrdersId"
+                             aria-label="Order @formattedId, @order.TrackingStatus, £@order.OrdersTotal.ToString("0.00")">
+
+                        <!-- Accent stripe -->
+                        <div class="pw-order-card__accent" aria-hidden="true"></div>
+
+                        <!-- Header: ID + status + total -->
+                        <div class="pw-order-card__header">
+                            <div class="pw-order-card__header-left">
+                                <h3 class="pw-order-card__id">@formattedId</h3>
+                                <span class="pw-badge @statusBadge">
+                                    <i data-lucide="@statusIcon" class="pw-icon-sm"></i>
+                                    @order.TrackingStatus
+                                </span>
+                            </div>
+                            <span class="pw-order-card__total">£@order.OrdersTotal.ToString("0.00")</span>
+                        </div>
+
+                        <!-- Meta row: date · method · items [· user if admin] -->
+                        <div class="pw-order-card__meta">
+                            <span class="pw-order-card__meta-item">
+                                <i data-lucide="calendar" class="pw-icon-sm pw-icon-muted"></i>
+                                @order.OrderDate.ToString("d MMMM yyyy")
+                            </span>
+                            <span class="pw-order-card__meta-sep" aria-hidden="true">·</span>
+                            <span class="pw-order-card__meta-item">
+                                @if (order.Delivery)
+                                {
+                                    <i data-lucide="truck" class="pw-icon-sm pw-icon-muted"></i>
+                                    <text>Delivery</text>
+                                    @if (!string.IsNullOrEmpty(order.DeliveryMethod))
+                                    {
+                                        <span class="pw-order-card__meta-sub">(@order.DeliveryMethod)</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <i data-lucide="store" class="pw-icon-sm pw-icon-muted"></i>
+                                    <text>Collection</text>
+                                    @if (order.DateOfCollection.HasValue)
+                                    {
+                                        <span class="pw-order-card__meta-sub">(@order.DateOfCollection.Value.ToString("d MMM"))</span>
+                                    }
+                                }
+                            </span>
+                            @if (itemCount > 0)
+                            {
+                                <span class="pw-order-card__meta-sep" aria-hidden="true">·</span>
+                                <span class="pw-order-card__meta-item">
+                                    <i data-lucide="shopping-bag" class="pw-icon-sm pw-icon-muted"></i>
+                                    @itemCount item@(itemCount != 1 ? "s" : "")
+                                </span>
+                            }
+                            @if (isAdmin)
+                            {
+                                <span class="pw-order-card__meta-sep" aria-hidden="true">·</span>
+                                <span class="pw-order-card__meta-item">
+                                    <i data-lucide="user" class="pw-icon-sm pw-icon-muted"></i>
+                                    <span class="pw-order-card__user-id" title="@order.UserId">@order.UserId</span>
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Product pills -->
+                        @if (order.OrderProducts != null && order.OrderProducts.Any())
+                        {
+                            <div class="pw-order-card__items" aria-label="Items in this order">
+                                @foreach (var op in order.OrderProducts.Take(4))
+                                {
+                                    <span class="pw-order-card__item-pill">
+                                        @(op.Products?.ItemName ?? "Item") ×@op.ProductQuantity
+                                    </span>
+                                }
+                                @if (order.OrderProducts.Count > 4)
+                                {
+                                    <span class="pw-order-card__item-pill pw-order-card__item-more">
+                                        +@(order.OrderProducts.Count - 4) more
+                                    </span>
+                                }
+                            </div>
+                        }
+
+                        <!-- Delivery address snippet -->
+                        @if (order.Delivery && !string.IsNullOrEmpty(order.DeliveryLine1))
+                        {
+                            <div class="pw-order-card__address">
+                                <i data-lucide="map-pin" class="pw-icon-sm pw-icon-muted"></i>
+                                <span>@order.DeliveryLine1@(string.IsNullOrEmpty(order.DeliveryCity) ? "" : ", " + order.DeliveryCity)@(string.IsNullOrEmpty(order.DeliveryPostcode) ? "" : " " + order.DeliveryPostcode)</span>
+                            </div>
+                        }
+
+                        <!-- Footer: actions -->
+                        <div class="pw-order-card__footer">
+                            <div class="pw-order-card__actions-primary">
+                                @if (canConfirm)
+                                {
+                                    <form asp-controller="Orders" asp-action="ConfirmDelivery"
+                                          asp-route-id="@order.OrdersId" method="post"
+                                          class="pw-order-card__confirm-form">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="pw-btn pw-btn--sm pw-btn--primary pw-confirm-btn"
+                                                data-order="@formattedId">
+                                            <i data-lucide="check" class="pw-icon-sm"></i>
+                                            Confirm Delivery
+                                        </button>
+                                    </form>
+                                }
+                                @if (autoDelivered && order.Delivery)
+                                {
+                                    <span class="pw-badge pw-badge--green">
+                                        <i data-lucide="check-circle" class="pw-icon-sm"></i>
+                                        Delivered ✓
+                                    </span>
+                                }
+                            </div>
+                            <div class="pw-order-card__actions-secondary">
+                                <a asp-action="Details" asp-route-id="@order.OrdersId"
+                                   class="pw-btn pw-btn--sm pw-btn--ghost"
+                                   aria-label="View details for @formattedId">
+                                    <i data-lucide="eye" class="pw-icon-sm"></i>
+                                    Details
+                                </a>
+                                @if (isAdmin)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@order.OrdersId"
+                                       class="pw-btn pw-btn--sm pw-btn--ghost"
+                                       aria-label="Edit @formattedId">
+                                        <i data-lucide="pencil" class="pw-icon-sm"></i>
+                                        Edit
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@order.OrdersId"
+                                       class="pw-btn pw-btn--sm pw-btn--danger"
+                                       aria-label="Delete @formattedId">
+                                        <i data-lucide="trash-2" class="pw-icon-sm"></i>
+                                        Delete
+                                    </a>
+                                }
+                            </div>
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+
+            <!-- No-results state (shown by JS when filters match nothing) -->
+            <div id="noResults" class="pw-orders-empty" style="display:none;" role="status" aria-live="polite">
+                <div class="pw-orders-empty__icon" aria-hidden="true">
+                    <i data-lucide="search-x" style="width:36px;height:36px;stroke-width:1.5;color:var(--text-light)"></i>
+                </div>
+                <h3 class="pw-orders-empty__title">No orders match</h3>
+                <p class="pw-orders-empty__desc">Try adjusting your search or filter.</p>
+                <button id="clearFiltersBtn" class="pw-btn pw-btn--ghost pw-btn--md" type="button">
+                    <i data-lucide="x" class="pw-icon-sm"></i>
+                    Clear filters
+                </button>
+            </div>
+        }
+
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    /* ── refs ─── */
+    var list       = document.getElementById('ordersList');
+    var searchEl   = document.getElementById('ordersSearch');
+    var sortEl     = document.getElementById('ordersSort');
+    var countNum   = document.getElementById('ordersCountNum');
+    var noResults  = document.getElementById('noResults');
+    var clearBtn   = document.getElementById('clearFiltersBtn');
+    var filterBtns = Array.prototype.slice.call(
+                         document.querySelectorAll('.pw-orders-filter-btn'));
+
+    if (!list) return; // no orders on page
+
+    var cards = Array.prototype.slice.call(list.querySelectorAll('.pw-order-card'));
+    var activeFilter = 'all';
+
+    /* ── helpers ─── */
+    function getVal(card, attr) { return card.getAttribute('data-' + attr) || ''; }
+
+    function applyFilters() {
+        var query = searchEl ? searchEl.value.trim().toLowerCase() : '';
+        var sort  = sortEl  ? sortEl.value : 'newest';
+
+        /* filter */
+        var visible = cards.filter(function (card) {
+            var matchStatus = (activeFilter === 'all') ||
+                              getVal(card, 'status') === activeFilter;
+            var matchSearch = !query ||
+                              ('pf-' + getVal(card, 'id').padStart(6, '0')).includes(query) ||
+                              ('#pf-' + getVal(card, 'id').padStart(6, '0')).includes(query) ||
+                              getVal(card, 'id').includes(query);
+            return matchStatus && matchSearch;
+        });
+
+        /* sort */
+        visible.sort(function (a, b) {
+            switch (sort) {
+                case 'oldest':  return getVal(a, 'date') < getVal(b, 'date') ? -1 : 1;
+                case 'highest': return parseFloat(getVal(b, 'value')) - parseFloat(getVal(a, 'value'));
+                case 'lowest':  return parseFloat(getVal(a, 'value')) - parseFloat(getVal(b, 'value'));
+                default:        return getVal(a, 'date') < getVal(b, 'date') ? 1 : -1; // newest
+            }
+        });
+
+        /* hide all, re-append visible in order */
+        cards.forEach(function (c) { c.style.display = 'none'; });
+        visible.forEach(function (c) {
+            c.style.display = '';
+            list.appendChild(c);
+        });
+
+        /* update count */
+        if (countNum) countNum.textContent = visible.length;
+
+        /* toggle empty state */
+        if (noResults) noResults.style.display = visible.length ? 'none' : 'flex';
+    }
+
+    /* ── search ─── */
+    if (searchEl) {
+        searchEl.addEventListener('input', applyFilters);
+    }
+
+    /* ── sort ─── */
+    if (sortEl) {
+        sortEl.addEventListener('change', applyFilters);
+    }
+
+    /* ── filter chips ─── */
+    filterBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            filterBtns.forEach(function (b) { b.classList.remove('is-active'); });
+            btn.classList.add('is-active');
+            activeFilter = btn.getAttribute('data-filter');
+            applyFilters();
+        });
+    });
+
+    /* ── clear filters ─── */
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            if (searchEl) searchEl.value = '';
+            if (sortEl)   sortEl.value   = 'newest';
+            activeFilter = 'all';
+            filterBtns.forEach(function (b) {
+                b.classList.toggle('is-active', b.getAttribute('data-filter') === 'all');
+            });
+            applyFilters();
+        });
+    }
+
+    /* ── Confirm-delivery particle burst ─── */
+    var colors = ['#16A34A','#F59E0B','#F97316','#4ADE80','#FEF08A','#86EFAC'];
+    document.querySelectorAll('.pw-confirm-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var r = btn.getBoundingClientRect();
+            var cx = r.left + r.width  / 2;
+            var cy = r.top  + r.height / 2;
+            for (var i = 0; i < 18; i++) {
+                (function (i) {
+                    setTimeout(function () {
+                        var el    = document.createElement('div');
+                        var color = colors[Math.floor(Math.random() * colors.length)];
+                        var size  = 7 + Math.random() * 10;
+                        var angle = Math.random() * Math.PI * 2;
+                        var speed = 80 + Math.random() * 160;
+                        var dx    = Math.cos(angle) * speed;
+                        var dy    = Math.sin(angle) * speed - 60;
+                        var dur   = 600 + Math.random() * 400;
+                        el.style.cssText =
+                            'position:fixed;border-radius:50%;pointer-events:none;z-index:9999;' +
+                            'left:' + (cx - size/2) + 'px;' +
+                            'top:'  + (cy - size/2) + 'px;' +
+                            'width:'  + size + 'px;' +
+                            'height:' + size + 'px;' +
+                            'background:' + color + ';';
+                        document.body.appendChild(el);
+                        el.animate(
+                            [{ transform:'translate(0,0) scale(1)', opacity:1 },
+                             { transform:'translate('+dx+'px,'+dy+'px) scale(.05)', opacity:0 }],
+                            { duration:dur, easing:'ease-out', fill:'forwards' }
+                        ).onfinish = function () { el.remove(); };
+                    }, i * 25);
+                })(i);
+            }
+        });
+    });
+
+})();
+</script>
+}

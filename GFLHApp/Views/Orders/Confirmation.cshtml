@@ -1,0 +1,286 @@
+﻿@model GFLHApp.Models.Orders
+
+@{
+    ViewData["Title"] = "Order Confirmation";
+    ViewData["FullWidth"] = true;
+
+    var orderProducts = Model.OrderProducts ?? new List<GFLHApp.Models.OrderProducts>();
+    var productCount = orderProducts.Sum(op => op.ProductQuantity);
+    var producerGroups = orderProducts
+        .Where(op => op.Products != null && op.Products.Producers != null)
+        .GroupBy(op => op.Products.Producers)
+        .ToList();
+
+    var fulfilmentLabel = Model.Delivery ? "Delivery" : "Collection";
+    var fulfilmentDetail = Model.Delivery
+        ? (string.IsNullOrWhiteSpace(Model.DeliveryMethod) ? "Delivery details being prepared" : Model.DeliveryMethod)
+        : (Model.DateOfCollection.HasValue ? Model.DateOfCollection.Value.ToString("dd MMMM yyyy") : "Collection date to be confirmed");
+}
+
+<section class="oc-hero" aria-labelledby="order-confirmation-title">
+    <div class="oc-hero__field" aria-hidden="true"></div>
+    <span class="oc-hero__float oc-hero__float--1"><i data-lucide="sprout"></i></span>
+    <span class="oc-hero__float oc-hero__float--2"><i data-lucide="wheat"></i></span>
+    <span class="oc-hero__float oc-hero__float--3"><i data-lucide="leaf"></i></span>
+
+    <div class="oc-hero__inner">
+        <div class="oc-confirm-mark reveal">
+            <i data-lucide="check" aria-hidden="true"></i>
+        </div>
+        <span class="pw-badge pw-badge--green reveal" data-delay="80">Order confirmed</span>
+        <h1 id="order-confirmation-title" class="oc-hero__title reveal" data-delay="120">
+            Thank you for choosing Greenfield.
+        </h1>
+        <p class="oc-hero__sub reveal" data-delay="180">
+            Your order is safely with us. We have passed the details to the growers and will keep
+            things moving with the same care that went into the produce.
+        </p>
+    </div>
+
+    <div class="oc-hero__wave" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+            <path d="M0,35 C260,72 480,6 720,34 C980,65 1180,10 1440,35 L1440,70 L0,70 Z" fill="#FFFBEB" />
+        </svg>
+    </div>
+</section>
+
+<main class="oc-page" aria-label="Order confirmation details">
+    <div class="oc-shell">
+        <section class="oc-summary-strip reveal" aria-label="Order at a glance">
+            <div class="oc-summary-item">
+                <span class="oc-summary-item__label">Order reference</span>
+                <strong class="oc-summary-item__value">#@Model.OrdersId.ToString("D6")</strong>
+            </div>
+            <div class="oc-summary-item">
+                <span class="oc-summary-item__label">Order date</span>
+                <strong class="oc-summary-item__value">@Model.OrderDate.ToString("dd MMMM yyyy")</strong>
+            </div>
+            <div class="oc-summary-item">
+                <span class="oc-summary-item__label">Items</span>
+                <strong class="oc-summary-item__value">@productCount item@(productCount == 1 ? "" : "s")</strong>
+            </div>
+            <div class="oc-summary-item oc-summary-item--total">
+                <span class="oc-summary-item__label">Total paid</span>
+                <strong class="oc-summary-item__value">&pound;@Model.OrdersTotal.ToString("0.00")</strong>
+            </div>
+        </section>
+
+        <div class="oc-grid">
+            <section class="oc-panel oc-panel--main reveal reveal--left" aria-labelledby="next-heading">
+                <div class="oc-panel__header">
+                    <span class="oc-panel__icon"><i data-lucide="route" aria-hidden="true"></i></span>
+                    <div>
+                        <span class="oc-panel__eyebrow">What happens next</span>
+                        <h2 id="next-heading" class="oc-panel__title">We are getting your order ready</h2>
+                    </div>
+                </div>
+
+                <div class="oc-status-card">
+                    <div class="oc-status-card__top">
+                        <span class="oc-status-pill">
+                            <span class="oc-status-pill__dot" aria-hidden="true"></span>
+                            @Model.TrackingStatus
+                        </span>
+                        <span class="oc-muted">Current status</span>
+                    </div>
+                    <p>
+                        Your order has been received and is being prepared by the growers listed below.
+                        Keep your order reference handy if you need to contact us.
+                    </p>
+                </div>
+
+                <ol class="oc-timeline" aria-label="Order progress">
+                    <li class="oc-timeline__item is-complete">
+                        <span class="oc-timeline__marker"><i data-lucide="check" aria-hidden="true"></i></span>
+                        <div>
+                            <strong>Order placed</strong>
+                            <span>We have recorded your order and payment details.</span>
+                        </div>
+                    </li>
+                    <li class="oc-timeline__item is-active">
+                        <span class="oc-timeline__marker"><i data-lucide="package-check" aria-hidden="true"></i></span>
+                        <div>
+                            <strong>Growers preparing</strong>
+                            <span>Each producer is preparing their part of your order.</span>
+                        </div>
+                    </li>
+                    <li class="oc-timeline__item">
+                        <span class="oc-timeline__marker"><i data-lucide="hand-heart" aria-hidden="true"></i></span>
+                        <div>
+                            <strong>@fulfilmentLabel arranged</strong>
+                            <span>@fulfilmentDetail</span>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <aside class="oc-panel oc-panel--side reveal reveal--right" aria-labelledby="fulfilment-heading">
+                <div class="oc-panel__header">
+                    <span class="oc-panel__icon oc-panel__icon--warm">
+                        <i data-lucide="map-pin" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <span class="oc-panel__eyebrow">Your details</span>
+                        <h2 id="fulfilment-heading" class="oc-panel__title">@fulfilmentLabel</h2>
+                    </div>
+                </div>
+
+                <dl class="oc-detail-list">
+                    <div>
+                        <dt>Method</dt>
+                        <dd>@fulfilmentDetail</dd>
+                    </div>
+                    @if (Model.Delivery)
+                    {
+                        <div>
+                            <dt>Delivering to</dt>
+                            <dd>
+                                @Model.DeliveryLine1<br />
+                                @if (!string.IsNullOrWhiteSpace(Model.DeliveryLine2))
+                                {
+                                    @Model.DeliveryLine2
+                                
+                                    <br />
+                                }
+                                @Model.DeliveryCity<br />
+                                @Model.DeliveryPostcode?.ToUpper()
+                            </dd>
+                        </div>
+                    }
+                    <div>
+                        <dt>Billing address</dt>
+                        <dd>
+                            @Model.BillingLine1<br />
+                            @if (!string.IsNullOrWhiteSpace(Model.BillingLine2))
+                            {
+                                @Model.BillingLine2
+                            
+                                <br />
+                            }
+                            @Model.BillingCity<br />
+                            @Model.BillingPostcode.ToUpper()
+                        </dd>
+                    </div>
+                </dl>
+            </aside>
+        </div>
+
+        <section class="oc-panel reveal" aria-labelledby="items-heading">
+            <div class="oc-panel__header oc-panel__header--split">
+                <div class="oc-panel__title-row">
+                    <span class="oc-panel__icon"><i data-lucide="shopping-basket" aria-hidden="true"></i></span>
+                    <div>
+                        <span class="oc-panel__eyebrow">Order contents</span>
+                        <h2 id="items-heading" class="oc-panel__title">Prepared by local growers</h2>
+                    </div>
+                </div>
+                <span class="oc-small-chip">@producerGroups.Count grower@(producerGroups.Count == 1 ? "" : "s")</span>
+            </div>
+
+            <div class="oc-grower-stack">
+                @foreach (var producerGroup in producerGroups)
+                {
+                    var groupInvoiceNumber = producerGroup
+                        .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.InvoiceNumber))?.InvoiceNumber;
+                    var producerSubtotal = producerGroup.Sum(op => op.Products.ItemPrice * op.ProductQuantity);
+                    var isVatRegistered = producerGroup.Key.IsVATRegistered;
+                    var vatAmount = producerSubtotal / 6;
+                    var exVAT = producerSubtotal - vatAmount;
+
+                    <article class="oc-grower-card">
+                        <div class="oc-grower-card__head">
+                            <div>
+                                <h3>@producerGroup.Key.ProducerName</h3>
+                                @if (isVatRegistered && !string.IsNullOrWhiteSpace(producerGroup.Key.VATNumber))
+                                {
+                                    <p>VAT Reg No: @producerGroup.Key.VATNumber</p>
+                                }
+                            </div>
+                            <span class="oc-grower-card__total">&pound;@producerSubtotal.ToString("0.00")</span>
+                        </div>
+
+                        <div class="oc-items" role="table" aria-label="Items from @producerGroup.Key.ProducerName">
+                            <div class="oc-items__row oc-items__row--head" role="row">
+                                <span role="columnheader">Product</span>
+                                <span role="columnheader">Qty</span>
+                                <span role="columnheader">Unit price</span>
+                                <span role="columnheader">Line total</span>
+                            </div>
+                            @foreach (var item in producerGroup)
+                            {
+                                <div class="oc-items__row" role="row">
+                                    <span role="cell">@item.Products.ItemName</span>
+                                    <span role="cell">@item.ProductQuantity</span>
+                                    <span role="cell">&pound;@item.Products.ItemPrice.ToString("0.00")</span>
+                                    <span role="cell">&pound;@((item.Products.ItemPrice * item.ProductQuantity).ToString("0.00"))</span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (isVatRegistered)
+                        {
+                            <dl class="oc-vat-breakdown">
+                                <div>
+                                    <dt>Ex. VAT</dt>
+                                    <dd>&pound;@exVAT.ToString("0.00")</dd>
+                                </div>
+                                <div>
+                                    <dt>VAT (20%)</dt>
+                                    <dd>&pound;@vatAmount.ToString("0.00")</dd>
+                                </div>
+                                <div class="oc-vat-breakdown__total">
+                                    <dt>Producer total inc. VAT</dt>
+                                    <dd>&pound;@producerSubtotal.ToString("0.00")</dd>
+                                </div>
+                            </dl>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(groupInvoiceNumber))
+                        {
+                            <p class="oc-note oc-note--invoice">
+                                <i data-lucide="receipt-text" aria-hidden="true"></i>
+                                VAT invoice number for @producerGroup.Key.ProducerName is <strong>@groupInvoiceNumber</strong>.
+                            </p>
+                        }
+                    </article>
+                }
+            </div>
+        </section>
+
+        <section class="oc-care-grid reveal" aria-label="Helpful reminders">
+            <div class="oc-note">
+                <i data-lucide="badge-alert" aria-hidden="true"></i>
+                <div>
+                    <strong>Allergen notice</strong>
+                    <p>Please refer to the allergen information provided at checkout. Contact us before consuming any products if you have any concerns.</p>
+                </div>
+            </div>
+            <div class="oc-note oc-note--quiet">
+                <i data-lucide="shield-check" aria-hidden="true"></i>
+                <div>
+                    <strong>Terms accepted</strong>
+                    <p>Your terms were accepted at the time of order.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="oc-actions reveal">
+            <a class="pw-btn pw-btn--primary pw-btn--lg" asp-controller="Orders" asp-action="Index">
+                <i data-lucide="clipboard-list" class="pw-icon-sm" aria-hidden="true"></i>
+                View My Orders
+            </a>
+            <a class="pw-btn pw-btn--ghost pw-btn--lg" asp-controller="Products" asp-action="Index">
+                <i data-lucide="arrow-left" class="pw-icon-sm" aria-hidden="true"></i>
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</main>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/orders/OrdersConfirmation.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/pages/orders/OrdersConfirmation.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,809 @@
+﻿@model GFLHApp.Models.Products
+@{
+    ViewData["Title"] = "Create Product";
+    ViewData["FullWidth"] = true;
+}
+
+<style>
+.pw-admin-page {
+    min-height: 100vh;
+    background: var(--cream);
+}
+
+.pw-admin-header {
+    background: linear-gradient(160deg, var(--cream) 0%, #f0ebe0 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 0 28px;
+}
+
+.pw-admin-header__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.pw-admin-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 500;
+    flex-wrap: wrap;
+}
+
+.pw-admin-breadcrumb li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pw-admin-breadcrumb li + li::before {
+    content: '/';
+    color: var(--text-muted);
+    opacity: .5;
+}
+
+.pw-admin-breadcrumb a {
+    color: var(--text-muted);
+    transition: color .15s;
+    text-decoration: none;
+}
+
+.pw-admin-breadcrumb a:hover {
+    color: var(--green);
+}
+
+.pw-admin-breadcrumb [aria-current] {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.pw-admin-header__title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pw-admin-header__icon {
+    width: 44px;
+    height: 44px;
+    background: var(--green-100);
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    flex-shrink: 0;
+}
+
+.pw-admin-header__title h1 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.pw-admin-header__title p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+}
+
+.pw-admin-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 36px;
+    align-items: start;
+}
+
+@@media (max-width: 860px) {
+    .pw-admin-body { grid-template-columns: 1fr; }
+    .pw-admin-img-col { display: none; }
+}
+
+.pw-admin-img-col {
+    position: sticky;
+    top: 96px;
+}
+
+.pw-admin-img-card {
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.pw-admin-img-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
+
+.pw-admin-img-placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--green-100) 0%, var(--cream-2) 100%);
+    color: var(--green);
+}
+
+.pw-admin-img-meta {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--cream);
+}
+
+.pw-admin-img-meta__name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 2px;
+}
+
+.pw-admin-img-meta__path {
+    font-size: 11px;
+    color: var(--text-light);
+    font-family: monospace;
+    word-break: break-all;
+    margin: 0;
+}
+
+.pw-form-card {
+    background: var(--cream);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.pw-form-section {
+    padding: 24px 28px;
+    background: var(--cream);
+}
+
+.pw-form-section + .pw-form-section {
+    border-top: 1px solid var(--border);
+}
+
+.pw-form-section__label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 18px;
+}
+
+.pw-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@@media (max-width: 520px) {
+    .pw-form-row { grid-template-columns: 1fr; }
+    .pw-form-section { padding: 18px 16px; }
+}
+
+.pw-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pw-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.pw-field__req {
+    color: var(--orange);
+    margin-left: 2px;
+}
+
+.pw-field__hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-top: 3px;
+}
+
+.pw-field__error {
+    font-size: 12px;
+    color: #DC2626;
+    margin-top: 2px;
+}
+
+.pw-input,
+.pw-select,
+.pw-textarea,
+.pw-file {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 13px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.pw-input:hover,
+.pw-select:hover,
+.pw-textarea:hover,
+.pw-file:hover {
+    border-color: #c4c0bb;
+}
+
+.pw-input:focus,
+.pw-select:focus,
+.pw-textarea:focus,
+.pw-file:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-100);
+}
+
+.pw-input.input-validation-error,
+.pw-select.input-validation-error,
+.pw-textarea.input-validation-error,
+.pw-file.input-validation-error {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px #fee2e2;
+}
+
+.pw-file {
+    padding: 10px 13px;
+}
+
+.pw-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-color: #fff;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.pw-textarea {
+    height: auto;
+    min-height: 96px;
+    padding: 11px 13px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.pw-stepper {
+    display: flex;
+    align-items: center;
+    height: 42px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.pw-stepper:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-100);
+}
+
+.pw-stepper__btn {
+    flex-shrink: 0;
+    width: 38px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-stepper__btn:hover {
+    background: var(--green-100);
+    color: var(--green);
+}
+
+.pw-stepper__input {
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    min-width: 0;
+    padding: 0 4px;
+    -moz-appearance: textfield;
+}
+
+.pw-stepper__input::-webkit-outer-spin-button,
+.pw-stepper__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pw-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+}
+
+.pw-toggle-row__info {
+    flex: 1;
+}
+
+.pw-toggle-row__info strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: block;
+}
+
+.pw-toggle-row__info span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.pw-toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 25px;
+    flex-shrink: 0;
+}
+
+.pw-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.pw-toggle__track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.pw-toggle__track::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+
+.pw-toggle input:checked + .pw-toggle__track {
+    background: var(--green);
+}
+
+.pw-toggle input:checked + .pw-toggle__track::after {
+    transform: translateX(21px);
+}
+
+.pw-allergen-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.pw-allergen-chip {
+    padding: 4px 10px;
+    border-radius: var(--r-full);
+    border: 1.5px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--cream);
+    cursor: pointer;
+}
+
+.pw-allergen-chip:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.pw-allergen-chip.is-active {
+    background: var(--orange-100);
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.pw-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    background: #f0ebe0;
+    border-top: 1px solid var(--border);
+    gap: 12px;
+}
+
+.pw-btn-save {
+    height: 42px;
+    padding: 0 24px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 2px 8px rgba(22,163,74,.22);
+}
+
+.pw-btn-save:hover {
+    background: var(--green-700);
+}
+
+.pw-btn-back {
+    height: 42px;
+    padding: 0 16px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+}
+
+.pw-btn-back:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
+.pw-form-errors {
+    margin: 20px 28px 0;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    border-radius: var(--r-sm);
+    font-size: 13px;
+    color: #DC2626;
+}
+
+.pw-form-errors ul {
+    margin: 5px 0 0 16px;
+    padding: 0;
+}
+</style>
+
+<div class="pw-admin-page">
+    <div class="pw-admin-header">
+        <div class="pw-admin-header__inner">
+            <nav aria-label="Breadcrumb">
+                <ol class="pw-admin-breadcrumb">
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Products" asp-action="Index">Products</a></li>
+                    <li><span aria-current="page">Create</span></li>
+                </ol>
+            </nav>
+            <div class="pw-admin-header__title">
+                <div class="pw-admin-header__icon" aria-hidden="true">
+                    <i data-lucide="package-plus"></i>
+                </div>
+                <div>
+                    <h1>Create product</h1>
+                    <p>Add a new item to your farm shop with image upload and live preview.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pw-admin-body">
+        <div class="pw-admin-img-col" aria-hidden="true">
+            <div class="pw-admin-img-card">
+                <div class="pw-admin-img-placeholder" id="adminImgPreview">
+                    <i data-lucide="sprout" style="width:72px;height:72px;opacity:.45;"></i>
+                </div>
+                <div class="pw-admin-img-meta">
+                    <p class="pw-admin-img-meta__name" id="adminImgName">New product</p>
+                    <p class="pw-admin-img-meta__path" id="adminImgPath">no image selected</p>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data" novalidate>
+            <div class="pw-form-card">
+                <div asp-validation-summary="All" class="pw-form-errors" hidden></div>
+
+                <div class="pw-form-section">
+                    <p class="pw-form-section__label">Basic information</p>
+
+                    <div class="pw-field" style="margin-bottom:16px;">
+                        <label asp-for="ItemName">Product name <span class="pw-field__req" aria-hidden="true">*</span></label>
+                        <input asp-for="ItemName" class="pw-input" id="liveNameInput" placeholder="e.g. Fresh Organic Tomatoes" autocomplete="off" />
+                        <span asp-validation-for="ItemName" class="pw-field__error"></span>
+                    </div>
+
+                    <div class="pw-form-row">
+                        <div class="pw-field">
+                            <label asp-for="Category">Category <span class="pw-field__req" aria-hidden="true">*</span></label>
+                            <select asp-for="Category" class="pw-select">
+                                <option value="">Select a category</option>
+                                <option value="Vegetables">Vegetables</option>
+                                <option value="Fruit">Fruit</option>
+                                <option value="Dairy">Dairy</option>
+                                <option value="Eggs">Eggs</option>
+                                <option value="Meat">Meat</option>
+                                <option value="Bakery">Bakery</option>
+                                <option value="Honey">Honey &amp; Preserves</option>
+                                <option value="Herbs">Herbs &amp; Flowers</option>
+                                <option value="Drinks">Drinks</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="Category" class="pw-field__error"></span>
+                        </div>
+
+                        <div class="pw-field">
+                            <label for="imageUpload">Upload image</label>
+                            <input type="file" id="imageUpload" name="imageUpload" class="pw-file" accept=".jpg,.jpeg,.png,.webp" />
+                            <span class="pw-field__hint">Upload a JPG, PNG, or WebP image up to 5 MB from your computer.</span>
+                            <span class="pw-field__error">@Html.ValidationMessage("imageUpload")</span>
+                        </div>
+                    </div>
+
+                    <div class="pw-field" style="margin-top:16px;">
+                        <label asp-for="ImagePath">Or choose an existing image</label>
+                        <select asp-for="ImagePath" class="pw-select" id="liveImagePathInput" asp-items="ViewBag.ExistingImages">
+                            <option value="">No existing image selected</option>
+                        </select>
+                        <span asp-validation-for="ImagePath" class="pw-field__error"></span>
+                        <span class="pw-field__hint">This list is loaded from `wwwroot/images`. If you upload a file above, that uploaded image will be used instead.</span>
+                    </div>
+
+                    <div class="pw-field" style="margin-top:16px;">
+                        <label asp-for="Description">Description <span class="pw-field__req" aria-hidden="true">*</span></label>
+                        <textarea asp-for="Description" class="pw-textarea" placeholder="Tell customers what makes this product special..." rows="4"></textarea>
+                        <span asp-validation-for="Description" class="pw-field__error"></span>
+                    </div>
+                </div>
+
+                <div class="pw-form-section">
+                    <p class="pw-form-section__label">Pricing &amp; stock</p>
+                    <div class="pw-form-row">
+                        <div class="pw-field">
+                            <label asp-for="ItemPrice">Price (GBP) <span class="pw-field__req" aria-hidden="true">*</span></label>
+                            <div class="pw-stepper" role="group" aria-label="Price">
+                                <button type="button" class="pw-stepper__btn" data-target="ItemPrice" data-action="dec" aria-label="Decrease price">-</button>
+                                <input asp-for="ItemPrice" class="pw-stepper__input" type="number" min="0.01" step="0.01" />
+                                <button type="button" class="pw-stepper__btn" data-target="ItemPrice" data-action="inc" aria-label="Increase price">+</button>
+                            </div>
+                            <span asp-validation-for="ItemPrice" class="pw-field__error"></span>
+                        </div>
+
+                        <div class="pw-field">
+                            <label asp-for="QuantityInStock">Quantity in stock <span class="pw-field__req" aria-hidden="true">*</span></label>
+                            <div class="pw-stepper" role="group" aria-label="Quantity in stock">
+                                <button type="button" class="pw-stepper__btn" data-target="QuantityInStock" data-action="dec" aria-label="Decrease quantity">-</button>
+                                <input asp-for="QuantityInStock" class="pw-stepper__input" type="number" min="0" step="1" />
+                                <button type="button" class="pw-stepper__btn" data-target="QuantityInStock" data-action="inc" aria-label="Increase quantity">+</button>
+                            </div>
+                            <span asp-validation-for="QuantityInStock" class="pw-field__error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pw-form-section">
+                    <p class="pw-form-section__label">Availability</p>
+                    <div class="pw-toggle-row">
+                        <div class="pw-toggle-row__info">
+                            <strong>Listed for sale</strong>
+                            <span>Turn this off if you want to save the product without showing it to customers yet.</span>
+                        </div>
+                        <label class="pw-toggle" aria-label="Toggle product availability">
+                            <input asp-for="Available" type="checkbox" role="switch" />
+                            <span class="pw-toggle__track" aria-hidden="true"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pw-form-section">
+                    <p class="pw-form-section__label">Allergens</p>
+                    <div class="pw-field">
+                        <label asp-for="Allergens">Allergen list</label>
+                        <input asp-for="Allergens" class="pw-input" id="allergensInput" placeholder="e.g. Gluten, Milk, Eggs - leave blank if none" autocomplete="off" />
+                        <span asp-validation-for="Allergens" class="pw-field__error"></span>
+                        <span class="pw-field__hint">Use commas to separate allergens. Quick-add buttons below can help you fill this in faster.</span>
+                        <div class="pw-allergen-chips" role="group" aria-label="Quick-add allergens">
+                            <button type="button" class="pw-allergen-chip" data-allergen="Gluten">Gluten</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Milk">Milk</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Eggs">Eggs</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Peanuts">Peanuts</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Tree nuts">Tree nuts</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Fish">Fish</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Crustaceans">Crustaceans</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Sesame">Sesame</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Sulphites">Sulphites</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Mustard">Mustard</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Celery">Celery</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Soybeans">Soybeans</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Lupin">Lupin</button>
+                            <button type="button" class="pw-allergen-chip" data-allergen="Molluscs">Molluscs</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pw-form-actions">
+                    <a asp-action="Index" class="pw-btn-back">
+                        <i data-lucide="arrow-left" style="width:15px;height:15px;" aria-hidden="true"></i>
+                        Back
+                    </a>
+                    <button type="submit" class="pw-btn-save">
+                        <i data-lucide="check" style="width:15px;height:15px;" aria-hidden="true"></i>
+                        Create product
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+    (function () {
+        'use strict';
+
+        if (window.lucide) lucide.createIcons();
+
+        document.querySelectorAll('.pw-stepper__btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var input = document.getElementById(btn.dataset.target);
+                if (!input) return;
+                var step = parseFloat(input.step) || 1;
+                var current = parseFloat(input.value) || 0;
+                var min = input.min !== '' ? parseFloat(input.min) : -Infinity;
+                var next = btn.dataset.action === 'inc' ? current + step : current - step;
+                if (next < min) next = min;
+                var decimals = (step.toString().split('.')[1] || '').length;
+                input.value = next.toFixed(decimals);
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        var allergensInput = document.getElementById('allergensInput');
+
+        function getAllergens() {
+            return allergensInput.value.split(',')
+                .map(function (s) { return s.trim(); })
+                .filter(function (s) { return s.length > 0; });
+        }
+
+        function syncChips() {
+            var active = getAllergens().map(function (s) { return s.toLowerCase(); });
+            document.querySelectorAll('.pw-allergen-chip').forEach(function (chip) {
+                chip.classList.toggle('is-active', active.indexOf(chip.dataset.allergen.toLowerCase()) !== -1);
+            });
+        }
+
+        document.querySelectorAll('.pw-allergen-chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                var current = getAllergens();
+                var index = current.map(function (s) { return s.toLowerCase(); }).indexOf(chip.dataset.allergen.toLowerCase());
+                if (index === -1) current.push(chip.dataset.allergen);
+                else current.splice(index, 1);
+                allergensInput.value = current.join(', ');
+                syncChips();
+            });
+        });
+
+        if (allergensInput) {
+            allergensInput.addEventListener('input', syncChips);
+            syncChips();
+        }
+
+        var previewHost = document.getElementById('adminImgPreview');
+        var pathLabel = document.getElementById('adminImgPath');
+        var nameInput = document.getElementById('liveNameInput');
+        var nameLabel = document.getElementById('adminImgName');
+        var uploadInput = document.getElementById('imageUpload');
+        var pathInput = document.getElementById('liveImagePathInput');
+
+        function setPlaceholder() {
+            previewHost.outerHTML = '<div class="pw-admin-img-placeholder" id="adminImgPreview"><i data-lucide="sprout" style="width:72px;height:72px;opacity:.45;"></i></div>';
+            previewHost = document.getElementById('adminImgPreview');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function setImage(src, label) {
+            previewHost.outerHTML = '<img id="adminImgPreview" src="' + src + '" alt="Product image preview" />';
+            previewHost = document.getElementById('adminImgPreview');
+            pathLabel.textContent = label;
+        }
+
+        if (nameInput && nameLabel) {
+            nameLabel.textContent = nameInput.value || 'New product';
+            nameInput.addEventListener('input', function () {
+                nameLabel.textContent = nameInput.value || 'New product';
+            });
+        }
+
+        if (pathInput) {
+            pathInput.addEventListener('input', function () {
+                if (uploadInput && uploadInput.files && uploadInput.files.length > 0) return;
+                var src = pathInput.value.trim();
+                if (src) setImage(src, src);
+                else {
+                    setPlaceholder();
+                    pathLabel.textContent = 'no image selected';
+                }
+            });
+        }
+
+        if (uploadInput) {
+            uploadInput.addEventListener('change', function () {
+                var file = uploadInput.files && uploadInput.files.length > 0 ? uploadInput.files[0] : null;
+                if (!file) {
+                    var src = pathInput ? pathInput.value.trim() : '';
+                    if (src) setImage(src, src);
+                    else {
+                        setPlaceholder();
+                        pathLabel.textContent = 'no image selected';
+                    }
+                    return;
+                }
+
+                var url = URL.createObjectURL(file);
+                setImage(url, file.name);
+            });
+        }
+
+        var summary = document.querySelector('[data-valmsg-summary]');
+        if (summary && summary.querySelectorAll('li').length > 0) {
+            summary.removeAttribute('hidden');
+        }
+
+        if (pathInput && pathInput.value.trim()) {
+            setImage(pathInput.value.trim(), pathInput.value.trim());
+        }
+    }());
+    </script>
+}

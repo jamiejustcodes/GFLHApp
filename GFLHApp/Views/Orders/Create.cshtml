@@ -1,0 +1,1167 @@
+@model GFLHApp.Models.Orders
+@{
+    ViewData["Title"] = "Checkout";
+    ViewData["FullWidth"] = true;
+    var basketProducts = ViewBag.BasketProducts as IEnumerable<GFLHApp.Models.BasketProducts> ?? Enumerable.Empty<GFLHApp.Models.BasketProducts>();
+    var subtotal       = (decimal)(ViewBag.Subtotal ?? 0m);
+    var hasFreeDelivery = (bool)(ViewBag.HasFreeDelivery ?? false);
+    var anyAllergens   = basketProducts.Any(i => !string.IsNullOrWhiteSpace(i.Products?.Allergens));
+}
+
+<style>
+/* ══ Checkout Page ══════════════════════════════════════════ */
+
+.co-page { min-height:100vh; background:var(--cream); }
+
+/* ── Steps bar ─────────────────────────────────────────── */
+.co-steps {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding-top: 88px;
+}
+.co-steps__inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center;
+}
+.co-step {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 20px 14px 0;
+    font-size: 13px; font-weight: 600; color: var(--text-light);
+    position: relative; white-space: nowrap;
+}
+.co-step + .co-step { padding-left: 20px; }
+.co-step + .co-step::before {
+    content: ''; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%); width: 1px; height: 20px; background: var(--border);
+}
+.co-step__num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--border); color: var(--text-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.co-step--done  { color: var(--text-muted); }
+.co-step--done  .co-step__num { background: var(--green-100); color: var(--green); }
+.co-step--active { color: var(--green-800); }
+.co-step--active .co-step__num {
+    background: var(--green); color: #fff;
+    box-shadow: 0 2px 8px rgba(22,163,74,.35);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.co-header {
+    background: linear-gradient(160deg, var(--cream) 0%, #ebf7f0 100%);
+    border-bottom: 1px solid var(--border);
+}
+.co-header__inner {
+    max-width: 1100px; margin: 0 auto; padding: 32px 24px 28px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+}
+.co-header__eyebrow {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--green);
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.co-header__title {
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3.5vw, 32px); font-weight: 800;
+    color: var(--text); margin: 0; line-height: 1.15; letter-spacing: -.025em;
+}
+.co-header__title em { color: var(--green); font-style: normal; }
+.co-header__sub { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
+
+/* ── Body ────────────────────────────────────────────────── */
+.co-body {
+    max-width: 1100px; margin: 0 auto;
+    padding: 36px 24px 80px;
+    display: grid; grid-template-columns: 1fr 360px;
+    gap: 28px; align-items: start;
+}
+@@media (max-width: 900px) {
+    .co-body { grid-template-columns: 1fr; }
+    .co-summary-col { order: -1; }
+}
+
+/* ── Form section card ───────────────────────────────────── */
+.co-section {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: co-rise .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.co-section:nth-child(1) { animation-delay:.04s; }
+.co-section:nth-child(2) { animation-delay:.10s; }
+.co-section:nth-child(3) { animation-delay:.16s; }
+.co-section:nth-child(4) { animation-delay:.22s; }
+.co-section:nth-child(5) { animation-delay:.28s; }
+.co-section:nth-child(6) { animation-delay:.33s; }
+@@keyframes co-rise {
+    from { opacity:0; transform:translateY(16px) scale(.98); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.co-section__head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    background: #FAFAF9;
+    display: flex; align-items: center; gap: 10px;
+}
+.co-section__head-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--green-100); color: var(--green);
+    border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+}
+.co-section__title {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 700; color: var(--text); margin: 0;
+}
+.co-section__sub {
+    font-size: 12px; color: var(--text-muted); margin: 1px 0 0;
+}
+.co-section__body { padding: 22px; }
+
+/* ── Fulfilment option cards ─────────────────────────────── */
+.co-option-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@@media (max-width: 520px) { .co-option-cards { grid-template-columns: 1fr; } }
+
+.co-option-card {
+    border: 2px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 18px 16px;
+    display: flex; align-items: flex-start; gap: 14px;
+    cursor: pointer;
+    transition: border-color .18s, background .18s, box-shadow .18s, transform .18s;
+    position: relative; user-select: none;
+    background: var(--cream);
+}
+.co-option-card:hover {
+    border-color: var(--green-200);
+    background: var(--white);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+.co-option-card.is-active {
+    border-color: var(--green);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+}
+.co-option-card.is-disabled {
+    opacity: .45; pointer-events: none;
+}
+.co-option-card input[type="checkbox"] {
+    position: absolute; opacity: 0; width: 0; height: 0;
+}
+.co-option-card__icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: var(--r-md);
+    background: var(--green-100); color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .18s;
+}
+.co-option-card.is-active .co-option-card__icon { background: var(--green); color: #fff; }
+.co-option-card__body { flex: 1; }
+.co-option-card__label {
+    font-size: 15px; font-weight: 700; color: var(--text); display: block; margin-bottom: 3px;
+}
+.co-option-card__hint { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+.co-option-card__check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+    transition: border-color .18s, background .18s;
+}
+.co-option-card.is-active .co-option-card__check {
+    background: var(--green); border-color: var(--green);
+}
+.co-option-card__check-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #fff;
+    opacity: 0; transform: scale(0); transition: opacity .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.co-option-card.is-active .co-option-card__check-dot { opacity: 1; transform: scale(1); }
+
+/* ── Delivery method cards ───────────────────────────────── */
+.co-delivery-methods { display: flex; flex-direction: column; gap: 10px; }
+.co-dm-card {
+    border: 2px solid var(--border); border-radius: var(--r-md);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: border-color .18s, background .18s, box-shadow .18s, transform .15s;
+    background: var(--cream); position: relative;
+}
+.co-dm-card:hover { border-color: var(--green-200); background: var(--white); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.co-dm-card.is-active {
+    border-color: var(--green); background: #f0fdf4;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.15), 0 2px 8px rgba(22,163,74,.12);
+    transform: translateY(-1px);
+}
+.co-dm-card__tick {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--green); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(0);
+    transition: opacity .2s, transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.co-dm-card.is-active .co-dm-card__tick { opacity: 1; transform: scale(1); }
+.co-dm-card__icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border-radius: var(--r-sm);
+    background: var(--green-100); color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.co-dm-card.is-active .co-dm-card__icon { background: var(--green); color: #fff; }
+.co-dm-card__info { flex: 1; }
+.co-dm-card__name { font-size: 14px; font-weight: 700; color: var(--text); }
+.co-dm-card__desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.co-dm-card__price {
+    font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text);
+    white-space: nowrap; padding-right: 4px;
+}
+.co-dm-card__price--free { color: var(--green); }
+
+
+/* ── Collection date picker ──────────────────────────────── */
+.co-date-input {
+    width: 100%;
+    height: 44px; padding: 0 14px;
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    color: var(--text); background: #fff;
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    transition: border-color .15s, box-shadow .15s; outline: none;
+    appearance: none;
+}
+.co-date-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.co-date-hint {
+    font-size: 12px; color: var(--text-muted); margin-top: 6px;
+    display: flex; align-items: center; gap: 5px;
+}
+
+/* ── Address fields ──────────────────────────────────────── */
+.co-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.co-field:last-child { margin-bottom: 0; }
+.co-field label {
+    font-size: 13px; font-weight: 600; color: var(--text);
+}
+.co-field__req { color: var(--orange); margin-left: 2px; }
+.co-field__hint { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+.co-field__error { font-size: 12px; color: #DC2626; margin-top: 2px; }
+
+.co-input {
+    width: 100%; height: 44px; padding: 0 14px;
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    color: var(--text); background: #fff;
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    transition: border-color .15s, box-shadow .15s; outline: none;
+    appearance: none;
+}
+.co-input:hover { border-color: #c4c0bb; }
+.co-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-100); }
+.co-input.input-validation-error { border-color: #DC2626; box-shadow: 0 0 0 3px #fee2e2; }
+
+.co-addr-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px;
+}
+@@media (max-width: 520px) { .co-addr-grid { grid-template-columns: 1fr; } }
+
+/* Delivery fields wrap — JS drives inline styles directly */
+#deliveryFieldsWrap {
+    overflow: hidden;
+    transition: max-height .38s ease, opacity .28s ease;
+}
+
+/* Same-as-billing toggle */
+.co-same-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; margin-bottom: 16px;
+    background: var(--green-100); border: 1.5px solid var(--green-200);
+    border-radius: var(--r-md); cursor: pointer;
+}
+.co-same-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+.co-same-row label { font-size: 13.5px; font-weight: 600; color: var(--green-800); cursor: pointer; }
+
+/* ── Allergen review ─────────────────────────────────────── */
+.co-allergen-head {
+    background: #FFEDD5; border-bottom: 1px solid #FED7AA;
+}
+.co-allergen-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.co-allergen-table th {
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--text-muted); border-bottom: 1.5px solid var(--border);
+    background: #FAFAF9;
+}
+.co-allergen-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.co-allergen-table tr:last-child td { border-bottom: none; }
+.co-allergen-table tr:hover td { background: #FFFBEB; }
+.co-allergen-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: var(--r-full);
+    border: 1px solid #FED7AA; background: #FFF7ED;
+    color: #9A3412; font-size: 11px; font-weight: 700;
+    margin: 2px 2px 2px 0;
+}
+.co-allergen-safe {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12.5px; font-weight: 600; color: var(--green);
+}
+
+/* ── Terms ───────────────────────────────────────────────── */
+.co-terms-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px; background: var(--cream);
+    border: 1.5px solid var(--border); border-radius: var(--r-md); cursor: pointer;
+}
+.co-terms-row input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; margin-top: 2px; flex-shrink: 0;
+}
+.co-terms-row label { font-size: 13.5px; color: var(--text); cursor: pointer; line-height: 1.55; }
+.co-terms-row label a { color: var(--green-700); font-weight: 600; text-decoration: underline; }
+.co-terms-error { font-size: 12px; color: #DC2626; margin-top: 6px; }
+
+/* Slide reveal — JS toggles display:block/none directly */
+.co-slide { display: none; }
+
+/* ── Validation summary ──────────────────────────────────── */
+.co-errors {
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    border-radius: var(--r-md); padding: 12px 16px;
+    font-size: 13px; color: #DC2626; margin-bottom: 20px;
+}
+.co-errors ul { margin: 5px 0 0 16px; padding: 0; }
+.co-errors.validation-summary-valid { display: none; }
+
+/* ── Summary col ─────────────────────────────────────────── */
+.co-summary-col { position: sticky; top: 100px; }
+.co-summary {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: var(--r-xl); box-shadow: var(--shadow-md); overflow: hidden;
+    animation: co-rise .45s .06s cubic-bezier(.34,1.56,.64,1) both;
+}
+.co-summary__head {
+    background: linear-gradient(135deg, var(--green-900) 0%, #1a4a2a 50%, var(--green-800) 100%);
+    padding: 20px 24px; position: relative; overflow: hidden;
+}
+.co-summary__head::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(245,158,11,.18) 0%, transparent 60%);
+    pointer-events: none;
+}
+.co-summary__head-title {
+    font-family: var(--font-display); font-size: 17px; font-weight: 800;
+    color: #fff; margin: 0 0 2px; position: relative; z-index: 1;
+}
+.co-summary__head-sub { font-size: 12px; color: rgba(255,255,255,.6); position: relative; z-index: 1; }
+.co-summary__body { padding: 20px 24px; }
+.co-summary__row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+.co-summary__row:last-of-type { border-bottom: none; }
+.co-summary__row-label { color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.co-summary__row-value { font-weight: 700; color: var(--text); }
+.co-summary__row-value--free { color: var(--green); }
+.co-summary__row-value--hidden { color: var(--text-light); font-weight: 400; font-style: italic; }
+
+.co-summary__total {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0 4px; margin-top: 4px; border-top: 2px solid var(--border);
+}
+.co-summary__total-label { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text); }
+.co-summary__total-value { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: var(--text); letter-spacing: -.02em; }
+.co-summary__total-vat { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: -2px; display: block; }
+
+/* Items mini list */
+.co-mini-items { display: flex; flex-direction: column; gap: 0; margin-bottom: 4px; }
+.co-mini-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px dashed var(--border);
+    font-size: 12.5px;
+}
+.co-mini-item:last-child { border-bottom: none; }
+.co-mini-item__name { color: var(--text); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
+.co-mini-item__qty  { color: var(--text-muted); flex-shrink: 0; margin-right: 8px; }
+.co-mini-item__price { font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+/* Place order button */
+.co-place-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; margin-top: 18px; padding: 17px 24px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-700) 100%);
+    color: #fff; font-family: var(--font-display);
+    font-size: 16px; font-weight: 800;
+    border-radius: var(--r-full); border: none; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(22,163,74,.4);
+    transition: transform .15s, box-shadow .15s;
+    position: relative; overflow: hidden; letter-spacing: -.01em;
+    text-decoration: none;
+}
+.co-place-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+    pointer-events: none;
+}
+.co-place-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(22,163,74,.5); color: #fff; }
+.co-place-btn:active { transform: translateY(-1px); }
+.co-place-btn:disabled { opacity: .5; pointer-events: none; }
+@@keyframes co-pulse { 0%,100%{ box-shadow:0 6px 24px rgba(22,163,74,.4); } 50%{ box-shadow:0 8px 32px rgba(22,163,74,.65),0 0 0 6px rgba(22,163,74,.1); } }
+.co-place-btn { animation: co-pulse 2.8s ease-in-out infinite; }
+.co-place-btn:hover { animation: none; }
+
+/* Trust */
+.co-trust { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.co-trust__item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.co-trust__item i { width: 14px; height: 14px; color: var(--green); flex-shrink: 0; }
+
+/* Back link */
+.co-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; margin-top: 14px; transition: color .15s; }
+.co-back:hover { color: var(--text); }
+</style>
+
+<div class="co-page">
+
+    <!-- ══ STEPS ══════════════════════════════════════════ -->
+    <div class="co-steps" aria-label="Checkout steps">
+        <div class="co-steps__inner">
+            <div class="co-step co-step--done">
+                <span class="co-step__num" aria-hidden="true"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></span>
+                <span>Your basket</span>
+            </div>
+            <div class="co-step co-step--active" aria-current="step">
+                <span class="co-step__num" aria-hidden="true">2</span>
+                <span>Review order</span>
+            </div>
+            <div class="co-step">
+                <span class="co-step__num" aria-hidden="true">3</span>
+                <span>Confirmed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ HEADER ══════════════════════════════════════════ -->
+    <div class="co-header">
+        <div class="co-header__inner">
+            <div>
+                <p class="co-header__eyebrow">
+                    <i data-lucide="lock" style="width:12px;height:12px;stroke-width:2.5"></i>
+                    Secure checkout
+                </p>
+                <h1 class="co-header__title">Complete your <em>order</em></h1>
+                <p class="co-header__sub">Fill in your details below — it only takes a minute.</p>
+            </div>
+            <a asp-controller="Baskets" asp-action="Index" class="pw-btn pw-btn--ghost pw-btn--sm">
+                <i data-lucide="arrow-left" style="width:14px;height:14px;stroke-width:2.5"></i>
+                Back to basket
+            </a>
+        </div>
+    </div>
+
+    <!-- ══ BODY ════════════════════════════════════════════ -->
+    <form asp-action="Create" asp-route-basketId="@ViewBag.BasketId" method="post" id="checkoutForm" novalidate>
+
+        <input type="hidden" name="basketId" value="@ViewBag.BasketId" />
+
+        <!-- Hidden delivery address fields (same-as-billing path) -->
+        <input type="hidden" id="DeliveryLine1Hidden"    name="DeliveryLine1" />
+        <input type="hidden" id="DeliveryLine2Hidden"    name="DeliveryLine2" />
+        <input type="hidden" id="DeliveryCityHidden"     name="DeliveryCity" />
+        <input type="hidden" id="DeliveryPostcodeHidden" name="DeliveryPostcode" />
+
+        <div class="co-body">
+
+            <!-- ── Left: form sections ──────────────────── -->
+            <div class="co-form-col">
+
+                <div asp-validation-summary="ModelOnly" class="co-errors" role="alert"></div>
+
+                <!-- ① Fulfilment method -->
+                <div class="co-section">
+                    <div class="co-section__head">
+                        <div class="co-section__head-icon"><i data-lucide="package" style="width:16px;height:16px;stroke-width:2"></i></div>
+                        <div>
+                            <p class="co-section__title">How would you like to receive your order?</p>
+                            <p class="co-section__sub">Choose one option below</p>
+                        </div>
+                    </div>
+                    <div class="co-section__body">
+                        <div class="co-option-cards">
+                            <!-- Delivery card — radio so only one can be chosen -->
+                            <label class="co-option-card" id="deliveryCard" for="fulfilmentDelivery">
+                                <input type="radio" name="FulfilmentMethod" id="fulfilmentDelivery" value="Delivery"
+                                       style="position:absolute;opacity:0;width:0;height:0;" />
+                                <!-- Hidden model binders updated by JS on submit -->
+                                <div class="co-option-card__icon">
+                                    <i data-lucide="truck" style="width:20px;height:20px;stroke-width:2"></i>
+                                </div>
+                                <div class="co-option-card__body">
+                                    <span class="co-option-card__label">Delivery</span>
+                                    <span class="co-option-card__hint">Delivered straight to your door</span>
+                                </div>
+                                <div class="co-option-card__check"><div class="co-option-card__check-dot"></div></div>
+                            </label>
+                            <!-- Collection card -->
+                            <label class="co-option-card" id="collectionCard" for="fulfilmentCollection">
+                                <input type="radio" name="FulfilmentMethod" id="fulfilmentCollection" value="Collection"
+                                       style="position:absolute;opacity:0;width:0;height:0;" />
+                                <div class="co-option-card__icon">
+                                    <i data-lucide="store" style="width:20px;height:20px;stroke-width:2"></i>
+                                </div>
+                                <div class="co-option-card__body">
+                                    <span class="co-option-card__label">Collection</span>
+                                    <span class="co-option-card__hint">Pick up from the farm or collection point</span>
+                                </div>
+                                <div class="co-option-card__check"><div class="co-option-card__check-dot"></div></div>
+                            </label>
+                        </div>
+                        <!-- Hidden checkbox fields the model expects — kept in sync by JS -->
+                        <input type="hidden" id="DeliveryHidden"    name="Delivery"    value="false" />
+                        <input type="hidden" id="CollectionHidden"  name="Collection"  value="false" />
+                    </div>
+                </div>
+
+                <!-- ② Delivery options (shown when Delivery selected) -->
+                <div class="co-slide" id="deliveryTypeGroup">
+                    <div class="co-section">
+                        <div class="co-section__head">
+                            <div class="co-section__head-icon"><i data-lucide="truck" style="width:16px;height:16px;stroke-width:2"></i></div>
+                            <div>
+                                <p class="co-section__title">Delivery options</p>
+                                <p class="co-section__sub">Select your preferred delivery speed</p>
+                            </div>
+                        </div>
+                        <div class="co-section__body">
+                            <!-- Native radio inputs styled as cards — reliable cross-browser -->
+                            <div class="co-delivery-methods" role="group" aria-label="Delivery method">
+
+                                <label class="co-dm-card" id="dmCard_NextDay">
+                                    <input type="radio" name="DeliveryMethod" id="dm_NextDay" value="Next Day" style="position:absolute;opacity:0;width:0;height:0;" />
+                                    <div class="co-dm-card__tick"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
+                                    <div class="co-dm-card__icon"><i data-lucide="zap" style="width:18px;height:18px;stroke-width:2.5"></i></div>
+                                    <div class="co-dm-card__info">
+                                        <div class="co-dm-card__name">Next Day</div>
+                                        <div class="co-dm-card__desc">Delivered the next working day</div>
+                                    </div>
+                                    <div class="co-dm-card__price @(hasFreeDelivery ? "co-dm-card__price--free" : "")">@(hasFreeDelivery ? "FREE" : "£5.99")</div>
+                                </label>
+
+                                <label class="co-dm-card" id="dmCard_Standard">
+                                    <input type="radio" name="DeliveryMethod" id="dm_Standard" value="Standard" style="position:absolute;opacity:0;width:0;height:0;" />
+                                    <div class="co-dm-card__tick"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
+                                    <div class="co-dm-card__icon"><i data-lucide="truck" style="width:18px;height:18px;stroke-width:2"></i></div>
+                                    <div class="co-dm-card__info">
+                                        <div class="co-dm-card__name">Standard</div>
+                                        <div class="co-dm-card__desc">Delivered in 3–5 working days</div>
+                                    </div>
+                                    <div class="co-dm-card__price @(hasFreeDelivery ? "co-dm-card__price--free" : "")">@(hasFreeDelivery ? "FREE" : "£2.99")</div>
+                                </label>
+
+                                <label class="co-dm-card" id="dmCard_Economy">
+                                    <input type="radio" name="DeliveryMethod" id="dm_Economy" value="Economy" style="position:absolute;opacity:0;width:0;height:0;" />
+                                    <div class="co-dm-card__tick"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
+                                    <div class="co-dm-card__icon"><i data-lucide="leaf" style="width:18px;height:18px;stroke-width:2"></i></div>
+                                    <div class="co-dm-card__info">
+                                        <div class="co-dm-card__name">Economy</div>
+                                        <div class="co-dm-card__desc">Delivered in 5–10 working days</div>
+                                    </div>
+                                    <div class="co-dm-card__price @(hasFreeDelivery ? "co-dm-card__price--free" : "")">@(hasFreeDelivery ? "FREE" : "£0.99")</div>
+                                </label>
+
+                            </div>
+                            <span asp-validation-for="DeliveryMethod" class="co-field__error" style="margin-top:8px;display:block;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ③ Collection date (shown when Collection selected) -->
+                <div class="co-slide" id="collectionDateGroup">
+                    <div class="co-section">
+                        <div class="co-section__head">
+                            <div class="co-section__head-icon"><i data-lucide="calendar" style="width:16px;height:16px;stroke-width:2"></i></div>
+                            <div>
+                                <p class="co-section__title">Collection details</p>
+                                <p class="co-section__sub">Choose when you'd like to collect</p>
+                            </div>
+                        </div>
+                        <div class="co-section__body">
+                            <div class="co-field">
+                                <label for="DateOfCollection">
+                                    Collection date <span class="co-field__req" aria-hidden="true">*</span>
+                                </label>
+                                <input asp-for="DateOfCollection" type="date" id="DateOfCollection" class="co-date-input" />
+                                <p class="co-date-hint">
+                                    <i data-lucide="info" style="width:13px;height:13px;stroke-width:2;color:var(--green)"></i>
+                                    Must be between 2 and 14 days from today.
+                                </p>
+                                <span id="collectionDateError" class="co-field__error" style="display:none;" role="alert"></span>
+                                <span asp-validation-for="DateOfCollection" class="co-field__error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ④ Billing address -->
+                <div class="co-section">
+                    <div class="co-section__head">
+                        <div class="co-section__head-icon"><i data-lucide="receipt" style="width:16px;height:16px;stroke-width:2"></i></div>
+                        <div>
+                            <p class="co-section__title">Billing address</p>
+                            <p class="co-section__sub">Where we'll send your invoice</p>
+                        </div>
+                    </div>
+                    <div class="co-section__body">
+                        <div class="co-field">
+                            <label asp-for="BillingLine1">Address line 1 <span class="co-field__req" aria-hidden="true">*</span></label>
+                            <input asp-for="BillingLine1" id="BillingLine1" class="co-input"
+                                   maxlength="40" placeholder="e.g. 12 Green Lane"
+                                   pattern="^[a-zA-Z0-9 #\-,\.]{1,40}$"
+                                   title="Letters, numbers, spaces and # - , . only" />
+                            <span asp-validation-for="BillingLine1" class="co-field__error"></span>
+                            <span class="co-field__hint">Max 40 characters. Letters, numbers, spaces and # - , . only.</span>
+                        </div>
+                        <div class="co-field">
+                            <label asp-for="BillingLine2">Address line 2</label>
+                            <input asp-for="BillingLine2" id="BillingLine2" class="co-input"
+                                   maxlength="40" placeholder="Flat, suite, building (optional)"
+                                   pattern="^[a-zA-Z0-9 #\-,\.]{0,40}$" />
+                            <span asp-validation-for="BillingLine2" class="co-field__error"></span>
+                        </div>
+                        <div class="co-addr-grid">
+                            <div class="co-field">
+                                <label asp-for="BillingCity">City <span class="co-field__req" aria-hidden="true">*</span></label>
+                                <input asp-for="BillingCity" id="BillingCity" class="co-input"
+                                       maxlength="40" placeholder="e.g. Birmingham"
+                                       pattern="^[a-zA-Z0-9 #\-,\.]{1,40}$" />
+                                <span asp-validation-for="BillingCity" class="co-field__error"></span>
+                            </div>
+                            <div class="co-field">
+                                <label asp-for="BillingPostcode">Postcode <span class="co-field__req" aria-hidden="true">*</span></label>
+                                <input asp-for="BillingPostcode" id="BillingPostcode" class="co-input"
+                                       maxlength="8" placeholder="e.g. B1 1BB"
+                                       pattern="^[A-Za-z]{1,2}[0-9][0-9A-Za-z]?\s?[0-9][A-Za-z]{2}$"
+                                       title="Valid UK postcode e.g. B1 1BB or SW1A 2AA"
+                                       style="text-transform:uppercase;" />
+                                <span asp-validation-for="BillingPostcode" class="co-field__error"></span>
+                                <span class="co-field__hint">UK format e.g. B1 1BB or SW1A 2AA.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⑤ Delivery address -->
+                <div class="co-section" id="deliveryAddressGroup">
+                    <div class="co-section__head">
+                        <div class="co-section__head-icon"><i data-lucide="map-pin" style="width:16px;height:16px;stroke-width:2"></i></div>
+                        <div>
+                            <p class="co-section__title">Delivery address</p>
+                            <p class="co-section__sub">Where should we deliver your order?</p>
+                        </div>
+                    </div>
+                    <div class="co-section__body">
+                        <div class="co-same-row">
+                            <input type="checkbox" id="sameAsBilling" />
+                            <label for="sameAsBilling">
+                                <i data-lucide="copy" style="width:14px;height:14px;stroke-width:2.5;vertical-align:middle;margin-right:4px;color:var(--green)"></i>
+                                Same as billing address
+                            </label>
+                        </div>
+
+                        <div id="deliveryFieldsWrap">
+                            <div class="co-field" id="deliveryLine1Row">
+                                <label asp-for="DeliveryLine1">Address line 1 <span class="co-field__req" aria-hidden="true">*</span></label>
+                                <input asp-for="DeliveryLine1" id="DeliveryLine1" class="co-input"
+                                       maxlength="40" placeholder="e.g. 12 Green Lane"
+                                       pattern="^[a-zA-Z0-9 #\-,\.]{1,40}$" />
+                                <span asp-validation-for="DeliveryLine1" class="co-field__error"></span>
+                            </div>
+                            <div class="co-field" id="deliveryLine2Row">
+                                <label asp-for="DeliveryLine2">Address line 2</label>
+                                <input asp-for="DeliveryLine2" id="DeliveryLine2" class="co-input"
+                                       maxlength="40" placeholder="Flat, suite, building (optional)"
+                                       pattern="^[a-zA-Z0-9 #\-,\.]{0,40}$" />
+                            </div>
+                            <div class="co-addr-grid">
+                                <div class="co-field" id="deliveryCityRow">
+                                    <label asp-for="DeliveryCity">City <span class="co-field__req" aria-hidden="true">*</span></label>
+                                    <input asp-for="DeliveryCity" id="DeliveryCity" class="co-input"
+                                           maxlength="40" placeholder="e.g. Birmingham"
+                                           pattern="^[a-zA-Z0-9 #\-,\.]{1,40}$" />
+                                    <span asp-validation-for="DeliveryCity" class="co-field__error"></span>
+                                </div>
+                                <div class="co-field" id="deliveryPostcodeRow">
+                                    <label asp-for="DeliveryPostcode">Postcode <span class="co-field__req" aria-hidden="true">*</span></label>
+                                    <input asp-for="DeliveryPostcode" id="DeliveryPostcode" class="co-input"
+                                           maxlength="8" placeholder="e.g. B1 1BB"
+                                           pattern="^[A-Za-z]{1,2}[0-9][0-9A-Za-z]?\s?[0-9][A-Za-z]{2}$"
+                                           style="text-transform:uppercase;" />
+                                    <span asp-validation-for="DeliveryPostcode" class="co-field__error"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⑥ Allergen review -->
+                <div class="co-section">
+                    <div class="co-section__head co-allergen-head">
+                        <div class="co-section__head-icon" style="background:#FFEDD5;color:#F97316;">
+                            <i data-lucide="triangle-alert" style="width:16px;height:16px;stroke-width:2"></i>
+                        </div>
+                        <div>
+                            <p class="co-section__title">Allergen information</p>
+                            <p class="co-section__sub">Provided under Natasha's Law — please review before placing your order</p>
+                        </div>
+                    </div>
+                    <div class="co-section__body" style="padding:0;">
+                        <table class="co-allergen-table" role="table" aria-label="Allergen information per product">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Allergens</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in basketProducts)
+                                {
+                                    var allergens = string.IsNullOrWhiteSpace(item.Products?.Allergens)
+                                        ? null
+                                        : item.Products.Allergens.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                                    <tr>
+                                        <td style="font-weight:600;color:var(--text);">@item.Products?.ItemName</td>
+                                        <td>
+                                            @if (allergens != null && allergens.Length > 0)
+                                            {
+                                                @foreach (var a in allergens)
+                                                {
+                                                    <span class="co-allergen-chip">
+                                                        <i data-lucide="alert-triangle" style="width:9px;height:9px;stroke-width:2.5"></i>
+                                                        @a
+                                                    </span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="co-allergen-safe">
+                                                    <i data-lucide="check-circle-2" style="width:13px;height:13px;stroke-width:2.5"></i>
+                                                    No allergens declared
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ⑦ Terms -->
+                <div class="co-section">
+                    <div class="co-section__head">
+                        <div class="co-section__head-icon"><i data-lucide="file-check" style="width:16px;height:16px;stroke-width:2"></i></div>
+                        <div>
+                            <p class="co-section__title">Terms &amp; conditions</p>
+                            <p class="co-section__sub">Required before placing your order</p>
+                        </div>
+                    </div>
+                    <div class="co-section__body">
+                        <label class="co-terms-row" for="termsAccepted">
+                            <input asp-for="TermsAccepted" id="termsAccepted" type="checkbox" />
+                            <label for="termsAccepted">
+                                I agree to the <a href="/Home/Terms" target="_blank" rel="noopener">Terms and Conditions</a>
+                                and confirm I have reviewed the allergen information for all items in my order.
+                            </label>
+                        </label>
+                        <span asp-validation-for="TermsAccepted" class="co-terms-error" role="alert"></span>
+                    </div>
+                </div>
+
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px;">
+                    Fields marked <span style="color:var(--orange);font-weight:700;">*</span> are required.
+                </p>
+
+            </div><!-- /co-form-col -->
+
+            <!-- ── Right: sticky summary ──────────────── -->
+            <aside class="co-summary-col" aria-label="Order summary">
+                <div class="co-summary">
+                    <div class="co-summary__head">
+                        <p class="co-summary__head-title">Order summary</p>
+                        <p class="co-summary__head-sub">@basketProducts.Count() item@(basketProducts.Count() != 1 ? "s" : "") from local farms</p>
+                    </div>
+                    <div class="co-summary__body">
+
+                        <!-- Mini item list -->
+                        <div class="co-mini-items" aria-label="Items in your order">
+                            @foreach (var item in basketProducts)
+                            {
+                                <div class="co-mini-item">
+                                    <span class="co-mini-item__name">@item.Products?.ItemName</span>
+                                    <span class="co-mini-item__qty">×@item.ProductQuantity</span>
+                                    <span class="co-mini-item__price">£@((item.Products!.ItemPrice * item.ProductQuantity).ToString("0.00"))</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div style="height:8px;"></div>
+
+                        <div class="co-summary__row">
+                            <span class="co-summary__row-label">Subtotal</span>
+                            <span class="co-summary__row-value">£@subtotal.ToString("0.00")</span>
+                        </div>
+
+                        <div class="co-summary__row" id="deliveryCostRow" style="display:none;">
+                            <span class="co-summary__row-label">
+                                <i data-lucide="truck" style="width:13px;height:13px;stroke-width:2"></i>
+                                <span id="deliveryCostLabel">Delivery</span>
+                            </span>
+                            <span class="co-summary__row-value" id="deliveryCostValue">£0.00</span>
+                        </div>
+
+                        <div class="co-summary__total">
+                            <span class="co-summary__total-label">Total</span>
+                            <div style="text-align:right;">
+                                <span class="co-summary__total-value" id="orderTotal">£@subtotal.ToString("0.00")</span>
+                                <span class="co-summary__total-vat">inc. any applicable VAT</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="co-place-btn" id="placeOrderBtn">
+                            <i data-lucide="check-circle-2" style="width:18px;height:18px;stroke-width:2.5"></i>
+                            Place order
+                            <i data-lucide="arrow-right" style="width:18px;height:18px;stroke-width:2.5;margin-left:2px"></i>
+                        </button>
+
+                        <div class="co-trust" aria-label="Trust signals">
+                            <div class="co-trust__item">
+                                <i data-lucide="shield-check"></i> Secure, encrypted checkout
+                            </div>
+                            <div class="co-trust__item">
+                                <i data-lucide="sprout"></i> Direct from verified local farms
+                            </div>
+                            <div class="co-trust__item">
+                                <i data-lucide="clock"></i> Orders processed same day
+                            </div>
+                        </div>
+
+                        <a asp-controller="Baskets" asp-action="Index" class="co-back">
+                            <i data-lucide="arrow-left" style="width:14px;height:14px;stroke-width:2.5"></i>
+                            Back to basket
+                        </a>
+
+                    </div>
+                </div>
+            </aside>
+
+        </div><!-- /co-body -->
+
+    </form>
+
+</div>
+
+@section Scripts {
+@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+(function () {
+    'use strict';
+
+    /* ── Lucide icons ────────────────────────────────────────────── */
+    if (window.lucide) lucide.createIcons();
+
+    /* ════════════════════════════════════════════════════════════════
+       SERVER-SIDE VALUES
+    ════════════════════════════════════════════════════════════════ */
+    var DELIVERY_COSTS   = { 'Next Day': 5.99, 'Standard': 2.99, 'Economy': 0.99 };
+    var HAS_FREE_DELIVERY = @Json.Serialize(ViewBag.HasFreeDelivery);
+    var SUBTOTAL = @Json.Serialize((double)Math.Round(subtotal, 2));
+
+    /* ════════════════════════════════════════════════════════════════
+       ELEMENT REFERENCES  — gathered once, never re-queried
+    ════════════════════════════════════════════════════════════════ */
+
+    // Fulfilment radios (Delivery / Collection)
+    var radioDelivery    = document.getElementById('fulfilmentDelivery');
+    var radioCollection  = document.getElementById('fulfilmentCollection');
+    var cardDelivery     = document.getElementById('deliveryCard');
+    var cardCollection   = document.getElementById('collectionCard');
+    // Hidden booleans kept in sync with the model
+    var hiddenDelivery   = document.getElementById('DeliveryHidden');
+    var hiddenCollection = document.getElementById('CollectionHidden');
+
+    // Panels shown/hidden based on fulfilment choice
+    var panelDeliveryTypes  = document.getElementById('deliveryTypeGroup');
+    var panelCollectionDate = document.getElementById('collectionDateGroup');
+    // Delivery address section (entire card hidden when collection chosen)
+    var sectionDeliveryAddr = document.getElementById('deliveryAddressGroup');
+
+    // Delivery method radio cards
+    var dmCards = document.querySelectorAll('.co-dm-card');
+
+    // Same-as-billing
+    var chkSameAsBilling   = document.getElementById('sameAsBilling');
+    var wrapDeliveryFields = document.getElementById('deliveryFieldsWrap');
+    // Visible delivery address inputs
+    var inpDL1 = document.getElementById('DeliveryLine1');
+    var inpDL2 = document.getElementById('DeliveryLine2');
+    var inpDCi = document.getElementById('DeliveryCity');
+    var inpDPc = document.getElementById('DeliveryPostcode');
+    // Hidden fields that carry delivery address when same-as-billing is checked
+    var hidDL1 = document.getElementById('DeliveryLine1Hidden');
+    var hidDL2 = document.getElementById('DeliveryLine2Hidden');
+    var hidDCi = document.getElementById('DeliveryCityHidden');
+    var hidDPc = document.getElementById('DeliveryPostcodeHidden');
+    // Billing address inputs (source for copy)
+    var inpBL1 = document.getElementById('BillingLine1');
+    var inpBL2 = document.getElementById('BillingLine2');
+    var inpBCi = document.getElementById('BillingCity');
+    var inpBPc = document.getElementById('BillingPostcode');
+
+    // Order summary elements
+    var elDeliveryCostRow   = document.getElementById('deliveryCostRow');
+    var elDeliveryCostLabel = document.getElementById('deliveryCostLabel');
+    var elDeliveryCostValue = document.getElementById('deliveryCostValue');
+    var elOrderTotal        = document.getElementById('orderTotal');
+
+    // Collection date
+    var inpCollectionDate = document.getElementById('DateOfCollection');
+
+    /* ════════════════════════════════════════════════════════════════
+       HELPERS
+    ════════════════════════════════════════════════════════════════ */
+
+    function show(el) { if (el) el.style.display = 'block'; }
+    function hide(el) { if (el) el.style.display = 'none'; }
+    function val(el)  { return el ? el.value : ''; }
+
+    function getSelectedDeliveryMethod() {
+        var checked = document.querySelector('input[name="DeliveryMethod"]:checked');
+        return checked ? checked.value : null;
+    }
+
+    /* Animated number counter for the order total */
+    var _animRaf = null;
+    function animateTotal(target) {
+        if (_animRaf) cancelAnimationFrame(_animRaf);
+        var start   = parseFloat((elOrderTotal.textContent || '0').replace(/[^0-9.]/g, '')) || 0;
+        var t0      = performance.now();
+        var dur     = 320;
+        function tick(now) {
+            var p    = Math.min((now - t0) / dur, 1);
+            var ease = 1 - Math.pow(1 - p, 3);
+            elOrderTotal.textContent = '£' + (start + (target - start) * ease).toFixed(2);
+            if (p < 1) { _animRaf = requestAnimationFrame(tick); }
+            else        { elOrderTotal.textContent = '£' + target.toFixed(2); _animRaf = null; }
+        }
+        _animRaf = requestAnimationFrame(tick);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       1. FULFILMENT SELECTION  (Delivery ↔ Collection)
+          Uses plain radio buttons — the browser enforces mutual exclusivity.
+          We just sync visual state and show/hide dependent panels.
+    ════════════════════════════════════════════════════════════════ */
+
+    function onFulfilmentChange() {
+        var isDelivery   = radioDelivery   && radioDelivery.checked;
+        var isCollection = radioCollection && radioCollection.checked;
+
+        /* ── Visual active state on the big option cards ── */
+        if (cardDelivery)   cardDelivery.classList.toggle('is-active', isDelivery);
+        if (cardCollection) cardCollection.classList.toggle('is-active', isCollection);
+
+        /* ── Keep hidden model-binder booleans in sync ── */
+        if (hiddenDelivery)   hiddenDelivery.value   = isDelivery   ? 'true' : 'false';
+        if (hiddenCollection) hiddenCollection.value = isCollection ? 'true' : 'false';
+
+        /* ── Show / hide dependent panels ── */
+        if (isDelivery) {
+            show(panelDeliveryTypes);
+            hide(panelCollectionDate);
+            show(sectionDeliveryAddr);
+        } else if (isCollection) {
+            hide(panelDeliveryTypes);
+            show(panelCollectionDate);
+            hide(sectionDeliveryAddr);
+        } else {
+            hide(panelDeliveryTypes);
+            hide(panelCollectionDate);
+            // leave delivery address shown by default
+        }
+
+        updateOrderSummary();
+    }
+
+    if (radioDelivery)   radioDelivery.addEventListener('change', onFulfilmentChange);
+    if (radioCollection) radioCollection.addEventListener('change', onFulfilmentChange);
+
+    // Run once on load to establish initial state
+    onFulfilmentChange();
+
+    /* ════════════════════════════════════════════════════════════════
+       2. DELIVERY METHOD CARDS
+          Each .co-dm-card wraps a hidden radio. Clicking the label
+          checks that radio (browser-native). We listen for 'change'
+          on the radio group and sync the card's visual state.
+    ════════════════════════════════════════════════════════════════ */
+
+    function syncDeliveryMethodCards() {
+        dmCards.forEach(function (card) {
+            var radio = card.querySelector('input[type="radio"][name="DeliveryMethod"]');
+            card.classList.toggle('is-active', !!(radio && radio.checked));
+        });
+        updateOrderSummary();
+    }
+
+    dmCards.forEach(function (card) {
+        var radio = card.querySelector('input[type="radio"][name="DeliveryMethod"]');
+        if (radio) {
+            radio.addEventListener('change', syncDeliveryMethodCards);
+        }
+        /* Also handle direct clicks on the card label in case the radio
+           change event doesn't fire in some edge-case browsers */
+        card.addEventListener('click', function () {
+            setTimeout(syncDeliveryMethodCards, 0);
+        });
+    });
+
+    /* ════════════════════════════════════════════════════════════════
+       3. ORDER SUMMARY — live delivery cost + total
+    ════════════════════════════════════════════════════════════════ */
+
+    function updateOrderSummary() {
+        var isDelivery = radioDelivery && radioDelivery.checked;
+        var method     = getSelectedDeliveryMethod();
+
+        if (isDelivery && method && DELIVERY_COSTS[method] !== undefined) {
+            elDeliveryCostRow.style.display = '';
+            elDeliveryCostLabel.textContent = method + ' Delivery';
+
+            if (HAS_FREE_DELIVERY) {
+                elDeliveryCostValue.innerHTML = '<span style="color:var(--green);font-weight:700;">FREE</span>';
+                animateTotal(SUBTOTAL);
+            } else {
+                var cost = DELIVERY_COSTS[method];
+                elDeliveryCostValue.textContent = '£' + cost.toFixed(2);
+                animateTotal(SUBTOTAL + cost);
+            }
+        } else {
+            elDeliveryCostRow.style.display = 'none';
+            animateTotal(SUBTOTAL);
+        }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       4. SAME-AS-BILLING CHECKBOX
+          When checked  → hide delivery fields, copy billing into hidden fields.
+          When unchecked → show delivery fields, clear hidden fields.
+          Live sync: if billing fields change while checkbox is ticked,
+          update the hidden fields immediately.
+    ════════════════════════════════════════════════════════════════ */
+
+    function copyBillingToHidden() {
+        if (hidDL1) hidDL1.value = val(inpBL1);
+        if (hidDL2) hidDL2.value = val(inpBL2);
+        if (hidDCi) hidDCi.value = val(inpBCi);
+        if (hidDPc) hidDPc.value = val(inpBPc);
+    }
+
+    function clearHiddenDeliveryFields() {
+        if (hidDL1) hidDL1.value = '';
+        if (hidDL2) hidDL2.value = '';
+        if (hidDCi) hidDCi.value = '';
+        if (hidDPc) hidDPc.value = '';
+    }
+
+    function onSameAsBillingChange() {
+        var same = chkSameAsBilling && chkSameAsBilling.checked;
+
+        /* Show or hide the delivery address fields block */
+        if (wrapDeliveryFields) {
+            wrapDeliveryFields.style.display = same ? 'none' : '';
+        }
+
+        /* Disable visible delivery inputs so they don't post duplicate field names */
+        if (inpDL1) inpDL1.disabled = same;
+        if (inpDL2) inpDL2.disabled = same;
+        if (inpDCi) inpDCi.disabled = same;
+        if (inpDPc) inpDPc.disabled = same;
+
+        if (same) {
+            copyBillingToHidden();
+        } else {
+            clearHiddenDeliveryFields();
+        }
+    }
+
+    if (chkSameAsBilling) {
+        chkSameAsBilling.addEventListener('change', onSameAsBillingChange);
+    }
+
+    /* Keep hidden delivery fields live-synced if user edits billing after ticking */
+    function makeBillingLiveSyncer(inpHidden) {
+        return function () {
+            if (chkSameAsBilling && chkSameAsBilling.checked) {
+                if (inpHidden) inpHidden.value = this.value;
+            }
+        };
+    }
+    if (inpBL1) inpBL1.addEventListener('input', makeBillingLiveSyncer(hidDL1));
+    if (inpBL2) inpBL2.addEventListener('input', makeBillingLiveSyncer(hidDL2));
+    if (inpBCi) inpBCi.addEventListener('input', makeBillingLiveSyncer(hidDCi));
+    if (inpBPc) inpBPc.addEventListener('input', makeBillingLiveSyncer(hidDPc));
+
+    // Run once on load
+    onSameAsBillingChange();
+
+    /* ════════════════════════════════════════════════════════════════
+       5. COLLECTION DATE VALIDATION
+    ════════════════════════════════════════════════════════════════ */
+
+    if (inpCollectionDate) {
+        var today   = new Date(); today.setHours(0, 0, 0, 0);
+        var minDate = new Date(today); minDate.setDate(minDate.getDate() + 2);
+        var maxDate = new Date(today); maxDate.setDate(maxDate.getDate() + 14);
+
+        inpCollectionDate.min = minDate.toISOString().split('T')[0];
+        inpCollectionDate.max = maxDate.toISOString().split('T')[0];
+
+        inpCollectionDate.addEventListener('change', function () {
+            var errEl = document.getElementById('collectionDateError');
+            if (!errEl) return;
+            var sel = new Date(this.value); sel.setHours(0, 0, 0, 0);
+            errEl.style.display = 'none';
+            errEl.textContent   = '';
+            if (sel < minDate) {
+                errEl.textContent   = 'Collection must be at least 2 days from today.';
+                errEl.style.display = 'block';
+            } else if (sel > maxDate) {
+                errEl.textContent   = 'Collection date must be within the next 14 days.';
+                errEl.style.display = 'block';
+            }
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       6. PLACE ORDER BUTTON — subtle pulse nudge after 6 s idle
+    ════════════════════════════════════════════════════════════════ */
+
+    var placeBtn = document.getElementById('placeOrderBtn');
+    if (placeBtn) {
+        setTimeout(function () {
+            placeBtn.style.animation = 'none';
+            placeBtn.style.transform = 'scale(1.04)';
+            setTimeout(function () {
+                placeBtn.style.transform = '';
+                placeBtn.style.animation = 'co-pulse 2.8s ease-in-out infinite';
+            }, 320);
+        }, 6000);
+    }
+
+}());
+</script>
+}
